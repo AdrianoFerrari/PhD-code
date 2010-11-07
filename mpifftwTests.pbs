@@ -1,0 +1,10 @@
+#!/bin/csh
+#PBS -N R0_02Tall
+#PBS -l nodes=1
+
+setenv PGI /opt/pgi
+
+cd /olwe/users/adriferr/mcContin
+
+mpiexec mpimc20.exe 6000000 4.0 0.0 4.0 0.02 R0_02Tall. 4.0
+#                    steps   Tf  amp  l   R  out    T0 

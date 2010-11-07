@@ -1,0 +1,16 @@
+# output the relevant averages from a single file
+{sumA += $1}
+{sumB += $2}
+{sumC += $3}
+{sumD += $4}
+{match(FILENAME,/R[0-9]*[_]?[0-9]*T/);}
+{r = substr(FILENAME,RSTART+1,RLENGTH-2);}
+#{match(FILENAME,/T[0-9]*[_]?[0-9]*/);}
+#{temp = substr(FILENAME,RSTART+1,RLENGTH-1);}
+{sub(/_/,".",r);}
+#{sub(/_/,".",temp);}
+END {if (NR!=0) line_ci = (sumB-sumA)/2/NR;
+if (NR!=0) line_ci_err = sumA/NR+line_ci;
+if (NR!=0) line_rlj = (sumD-sumC)/2/NR;
+if (NR!=0) line_rlj_err = sumC/NR+line_rlj;
+printf("%s,%1.5f,%1.5f,%1.5f,%1.5f\n",r,line_ci,line_ci_err,line_rlj,line_rlj_err);}
