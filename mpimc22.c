@@ -117,7 +117,7 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0));
 
 
 //set charges
-   for(int i; i<N;i++)
+   for(int i=0; i<N;i++)
    {q[i]=2.0;}
 
    MPI_Init(&argc,&argv);
