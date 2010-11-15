@@ -496,8 +496,8 @@ static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,double amp,
 }
 static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0)
 {
-double rxz = sqrt((xi-(x0+amp*sin(twoPI*yi/lambda)))*(xi-(x0+amp*sin(twoPI*yi/lambda))) 
-+ (zi-z0)*(zi-z0));
+double xa = x0+amp*sin(twoPI*yi/lambda);
+double rxz = sqrt((xi-xa)*(xi-xa) + (zi-z0)*(zi-z0));
 if (rxz < 1.122 * sigma)
 	return 4.0*rljEps*(pow(sigma/rxz,12.0) - pow(sigma/rxz,6.0) + 0.25);
 else
