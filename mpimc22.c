@@ -458,7 +458,7 @@ static double Line(double qi,double xi,double yi,double zi,double amp, double la
 		return 0.0;
 	else
 	return -2.0*qi*linCharge*log(rxz)+
-		4.0*amp*PI*qi*xi*linCharge*my_bessk1(twoPI*rxz/lambda)*sin(twoPI*yi/lambda)/(rxz*lambda);
+		4.0*amp*PI*qi*xi*linCharge*my_bessk1(twoPI*rxz/lambda)*sin(twoPI*yi/lambda)/rxz;
 }
 
 
