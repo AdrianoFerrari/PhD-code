@@ -40,35 +40,35 @@ const double besskx[32]={0.0000161803, 0.0000261803, 0.0000423607,0.000068541, 0
 const double bessk0y[32]={11.1476,10.6664,10.1852,9.70401,9.2228,8.74159,8.26037,7.77916,7.29795,6.81674,6.33553,5.85433,5.37315,4.892,4.41093,3.93007,3.44967,2.97036,2.49345,2.02184,1.56137,1.12325,0.726727,0.399538,0.170257,0.0484295,0.00721246,0.00037911,0.0000037108,0.00000000240083,0.0000000000000191954, 0.0};
 const double bessk1y[32]={61803.4,38196.6,23606.8,14589.8,9016.99,5572.81,3444.18,2128.62,1315.56,813.057,502.493,310.552,191.923,118.601,73.2803,45.2615,27.9328,17.2068,10.5566,6.42055,3.83546,2.21072,1.19023,0.5657,0.21594,0.0567286,0.00799482,0.000404955,0.00000386892,0.00000000246453,0.0000000000000195117,0.0};
 
-static double CalculateE(double q[],double k[][],double amp,double lambda,double R);
-static double CalculateEn(double q[],double k[][],double amp,double lambda,double R, int ranN);
-static double CalculateE_n(double q[],double k[][],double amp,double lambda,double R,int ranN);
+static double CalculateE(double q[],double k[][],double amp,double lambda,double R,double sigma);
+static double CalculateEn(double q[],double k[][],double amp,double lambda,double R, int ranN,double sigma);
+static double CalculateE_n(double q[],double k[][],double amp,double lambda,double R,int ranN,double sigma);
 
 static double LeknerPotentialE(double q[],double k[][]);
 static double LeknerPotentialEn(double q[],double k[][],int ranN);
 static double LeknerPotentialE_n(double q[],double k[][],int ranN);
 static double Lekner(double qi,double qj, double xi,double yi,double zi,double xj,double yj,double zj);
 
-static double RLJPotentialE(double k[][]);
-static double RLJPotentialEn(double k[][],int ranN);
-static double RLJPotentialE_n(double k[][],int ranN);
-static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj);
+static double RLJPotentialE(double k[][],double sigma);
+static double RLJPotentialEn(double k[][],int ranN,double sigma);
+static double RLJPotentialE_n(double k[][],int ranN,double sigma);
+static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj,double sigma);
 
 static double LinePotentialE(double q[],double k[][], double amp, double lambda, double x0,double z0);
 static double LinePotentialEn(double q[],double k[][], double amp, double lambda, double x0,double z0,int ranN);
 static double LinePotentialE_n(double q[],double k[][], double amp, double lambda, double x0,double z0,int ranN);
 static double Line(double qi,double xi,double yi,double zi,double amp, double lambda,double x0,double z0);
 
-static double LineRLJPotentialE(double k[][],double x0,double z0, double amp, double lambda);
-static double LineRLJPotentialEn(double k[][],double x0,double z0, double amp, double lambda,int ranN);
-static double LineRLJPotentialE_n(double k[][],double x0,double z0, double amp, double lambda,int ranN);
-static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0);
+static double LineRLJPotentialE(double k[][],double x0,double z0, double amp, double lambda,double sigma);
+static double LineRLJPotentialEn(double k[][],double x0,double z0, double amp, double lambda,int ranN,double sigma);
+static double LineRLJPotentialE_n(double k[][],double x0,double z0, double amp, double lambda,int ranN,double sigma);
+static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0,double sigma);
 
 static double my_bessk0(double x);
 static double my_bessk1(double x);
 
 static double ForceCoul_LineParticle(float q, double x, double y, double z, double x0, double z0);
-static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0);
+static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,double sigma);
 static double ForceLine_Line(double x0, double z0, double x1, double z1);
 
 void settable(UL i1,UL i2,UL i3,UL i4,UL i5, UL i6)
@@ -107,11 +107,12 @@ int main(int argc,char **argv)
    double accValsTested=0.0;
    int seed = atoi(argv[8]); 
    int coords_out = atoi(argv[9]);
+   double sigma = atof(argv[10]);
 
 //run bessels first
 printf("%f, %f\n",my_bessk0(1.356), my_bessk1(1.356));
 printf("%f\n",ForceCoul_LineParticle(-1.54 , 9.04 , 0.5 , -1.65 , 0.0 , 0.0)); 
-printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0));
+printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
 //printf("forces: %f\n",ForceLine_Line(0.125,0.014,-0.004,0.0));
 
 
@@ -242,8 +243,8 @@ accValsTested++;
 		
 		 for (int j=0;j<N;j++)
 		 {
-		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*R,0.0);
-		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*R,0.0);	
+		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*R,0.0,sigma);
+		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*R,0.0,sigma);	
 		   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*R,0.0);
 		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*R,0.0);
    		 }
@@ -292,17 +293,17 @@ else
 	return 0;
 }
 
-static double CalculateE(double q[],double k[][],double amp, double lambda, double R)
+static double CalculateE(double q[],double k[][],double amp, double lambda, double R,double sigma)
 {
-   return LeknerPotentialE(q,k)+LinePotentialE(q,k,amp,lambda,-0.5*R,0)+LinePotentialE(q,k,amp,lambda,0.5*R,0)+LineRLJPotentialE(k,-0.5*R,0,amp,lambda)+LineRLJPotentialE(k,0.5*R,0,amp,lambda);
+   return LeknerPotentialE(q,k)+LinePotentialE(q,k,amp,lambda,-0.5*R,0)+LinePotentialE(q,k,amp,lambda,0.5*R,0)+LineRLJPotentialE(k,-0.5*R,0,amp,lambda,sigma)+LineRLJPotentialE(k,0.5*R,0,amp,lambda,sigma);
 }
-static double CalculateEn(double q[],double k[][],double amp,double lambda,double R, int ranN)
+static double CalculateEn(double q[],double k[][],double amp,double lambda,double R, int ranN,double sigma)
 {
-	return LeknerPotentialEn(q,k,ranN)+LinePotentialEn(q,k,amp,lambda,-0.5*R,0,ranN)+LinePotentialEn(q,k,amp,lambda,0.5*R,0,ranN)+LineRLJPotentialEn(k,-0.5*R,0,amp,lambda,ranN)+LineRLJPotentialEn(k,0.5*R,0,amp,lambda,ranN);
+	return LeknerPotentialEn(q,k,ranN)+LinePotentialEn(q,k,amp,lambda,-0.5*R,0,ranN)+LinePotentialEn(q,k,amp,lambda,0.5*R,0,ranN)+LineRLJPotentialEn(k,-0.5*R,0,amp,lambda,ranN,sigma)+LineRLJPotentialEn(k,0.5*R,0,amp,lambda,ranN,sigma);
 }
-static double CalculateE_n(double q[],double k[][],double amp,double lambda,double R, int ranN)
+static double CalculateE_n(double q[],double k[][],double amp,double lambda,double R, int ranN,double sigma)
 {
-	return LeknerPotentialE_n(q,k,ranN)+LinePotentialE_n(q,k,amp,lambda,-0.5*R,0,ranN)+LinePotentialE_n(q,k,amp,lambda,0.5*R,0,ranN)+LineRLJPotentialE_n(k,-0.5*R,0,amp,lambda,ranN)+LineRLJPotentialE_n(k,0.5*R,0,amp,lambda,ranN);
+	return LeknerPotentialE_n(q,k,ranN)+LinePotentialE_n(q,k,amp,lambda,-0.5*R,0,ranN)+LinePotentialE_n(q,k,amp,lambda,0.5*R,0,ranN)+LineRLJPotentialE_n(k,-0.5*R,0,amp,lambda,ranN,sigma)+LineRLJPotentialE_n(k,0.5*R,0,amp,lambda,ranN,sigma);
 }
 
 static double LeknerPotentialE(double q[],double x[3][N])
@@ -366,7 +367,7 @@ for (int n = 1; n <= M; n++)
 }
 
 
-static double RLJPotentialE(double x[3][N])
+static double RLJPotentialE(double x[3][N],double sigma)
 {
         double r;
         double pe = 0;			
@@ -376,13 +377,13 @@ static double RLJPotentialE(double x[3][N])
             {
                 if (i != j)
                 {
-                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j]);
+                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],sigma);
                 }
             }
         }
         return pe;
 }
-static double RLJPotentialEn(double x[3][N],int ranN)
+static double RLJPotentialEn(double x[3][N],int ranN,double sigma)
 {
         double r;
         double pe = 0;			
@@ -391,12 +392,12 @@ static double RLJPotentialEn(double x[3][N],int ranN)
 		{
 			if (i != j)
 			{
-					pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j]);
+					pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],sigma);
 			}
 		}
         return pe;
 }
-static double RLJPotentialE_n(double x[3][N], int ranN)
+static double RLJPotentialE_n(double x[3][N], int ranN,double sigma)
 {
         double r;
         double pe = 0;			
@@ -406,13 +407,13 @@ static double RLJPotentialE_n(double x[3][N], int ranN)
             {
                 if (i != j && i!=ranN && j!=ranN)
                 {
-                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j]);
+                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],sigma);
                 }
             }
         }
         return pe;
 }
-static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj)
+static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj,double sigma)
 {
 double r = sqrt((xj - xi) * (xj - xi) +(yj - yi) * (yj - yi)+ (zj - zi) * (zj - zi));
 if (r < 1.122 * sigma)
@@ -462,27 +463,27 @@ static double Line(double qi,double xi,double yi,double zi,double amp, double la
 }
 
 
-static double LineRLJPotentialE(double x[3][N],double x0,double z0,double amp, double lambda)
+static double LineRLJPotentialE(double x[3][N],double x0,double z0,double amp, double lambda,double sigma)
 {
     double r;
     double pe = 0;
 	
     for (int i = 0; i < N; i++)
     {
-	pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0);
+	pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0,sigma);
     }
     return pe;
 }
-static double LineRLJPotentialEn(double x[3][N],double x0,double z0,double amp, double lambda, int ranN)
+static double LineRLJPotentialEn(double x[3][N],double x0,double z0,double amp, double lambda, int ranN,double sigma)
 {
     double r;
     double pe = 0;
 	
     int i=ranN;
-	pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0);
+	pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0,sigma);
     return pe;
 }
-static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,double amp, double lambda, int ranN)
+static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,double amp, double lambda, int ranN,double sigma)
 {
     double r;
     double pe = 0;
@@ -490,11 +491,11 @@ static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,double amp,
     for (int i = 0; i < N; i++)
     {
 	if(i!=ranN)
-		pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0);
+		pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0,sigma);
     }
     return pe;
 }
-static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0)
+static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0,double sigma)
 {
 double xa = x0+amp*sin(twoPI*yi/lambda);
 double rxz = sqrt((xi-xa)*(xi-xa) + (zi-z0)*(zi-z0));
@@ -512,7 +513,7 @@ static double ForceCoul_LineParticle(float q, double x, double y, double z, doub
 	else
 		return -1.0*(2.0*q*linCharge/rxz)*sqrt(1-z*z/(rxz*rxz));		
 }
-static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0)
+static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,double sigma)
 {
 	double rxz = sqrt((x - x0) * (x - x0) + (z - z0) * (z - z0));
 	double sigma6=pow(sigma,6);
