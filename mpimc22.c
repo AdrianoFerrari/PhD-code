@@ -169,7 +169,7 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
    }
 
    //Main MC loop
-   double E=CalculateE(q,k,amp,lambda,R);//initial energy calculation
+   double E=CalculateE(q,k,amp,lambda,R,sigma);//initial energy calculation
    //printf("%f\n",E);
    
    for(int s=0;s<T/size;s++)
@@ -194,8 +194,8 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
 	kTemp[1][ranN]=ranY;
         kTemp[2][ranN]=ranR*sin(ranPhi);
 
-	double En=CalculateEn(q,k,amp,lambda,R,ranN);
-	double Enp=CalculateEn(q,kTemp,amp,lambda,R,ranN);
+	double En=CalculateEn(q,k,amp,lambda,R,ranN,sigma);
+	double Enp=CalculateEn(q,kTemp,amp,lambda,R,ranN,sigma);
 	De=Enp-En;
          
         if(node==0){
@@ -209,7 +209,7 @@ accValsTested++;
 	   k[1][ranN]=kTemp[1][ranN];
            k[2][ranN]=kTemp[2][ranN];
 	   if(node==0){accepted++;}
-	   double E_n=CalculateE_n(q,kTemp,amp,lambda,R,ranN);
+	   double E_n=CalculateE_n(q,kTemp,amp,lambda,R,ranN,sigma);
 	   E = E_n+Enp;
 	}
 	else if(exp(-De/kbT)>=UNI)
@@ -218,7 +218,7 @@ accValsTested++;
            k[1][ranN]=kTemp[1][ranN];
            k[2][ranN]=kTemp[2][ranN];
 	   if(node==0){accepted++;}
-	   double E_n=CalculateE_n(q,kTemp,amp,lambda,R,ranN);
+	   double E_n=CalculateE_n(q,kTemp,amp,lambda,R,ranN,sigma);
 	   E = E_n+Enp;
 	}
 
