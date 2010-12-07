@@ -25,6 +25,20 @@ static UL a=224466889, b=7584631, t[256];
 t[256]*/
 static UL x=0,y=0,bro; static unsigned char c=0;
 
+typedef struct PARAMS{
+int T;
+double kbTF;
+double amp;
+double lambda;
+double R;
+char base[32];
+double kbT0;
+int seed;
+int coords_out;
+double sigma;
+double rljEps;
+} PARAMS;
+
 const int Nx = 64;//lattice points
 const int Ny = 96;//lattice points
 const int Nz = 10;//lattice points
@@ -33,42 +47,42 @@ const double Ly = 24.0;
 const double uy = 0.041666666666;
 const int N = 64;
 //const double sigma = 0.45;
-const double rljEps = 1.0;
+//const double rljEps = 1.0;
 const double linCharge = -5.33333333;
 const int M = 7;//Lekner terms
 const double besskx[32]={0.0000161803, 0.0000261803, 0.0000423607,0.000068541, 0.000110902,0.000179443, 0.000290344, 0.000469787, 0.000760132, 0.00122992,0.00199005, 0.00321997, 0.00521002, 0.00842999, 0.01364, 0.02207,0.03571, 0.05778, 0.09349,0.15127, 0.24476, 0.39603, 0.64079,1.03682, 1.67761, 2.71443, 4.39204, 7.10647, 11.4985, 18.605, 30.1035,48.7085};
 const double bessk0y[32]={11.1476,10.6664,10.1852,9.70401,9.2228,8.74159,8.26037,7.77916,7.29795,6.81674,6.33553,5.85433,5.37315,4.892,4.41093,3.93007,3.44967,2.97036,2.49345,2.02184,1.56137,1.12325,0.726727,0.399538,0.170257,0.0484295,0.00721246,0.00037911,0.0000037108,0.00000000240083,0.0000000000000191954, 0.0};
 const double bessk1y[32]={61803.4,38196.6,23606.8,14589.8,9016.99,5572.81,3444.18,2128.62,1315.56,813.057,502.493,310.552,191.923,118.601,73.2803,45.2615,27.9328,17.2068,10.5566,6.42055,3.83546,2.21072,1.19023,0.5657,0.21594,0.0567286,0.00799482,0.000404955,0.00000386892,0.00000000246453,0.0000000000000195117,0.0};
 
-static double CalculateE(double q[],double k[][],double amp,double lambda,double R,double sigma);
-static double CalculateEn(double q[],double k[][],double amp,double lambda,double R, int ranN,double sigma);
-static double CalculateE_n(double q[],double k[][],double amp,double lambda,double R,int ranN,double sigma);
+static double CalculateE(double q[],double k[][],PARAMS pars);
+static double CalculateEn(double q[],double k[][],PARAMS pars, int ranN);
+static double CalculateE_n(double q[],double k[][],PARAMS pars,int ranN);
 
 static double LeknerPotentialE(double q[],double k[][]);
 static double LeknerPotentialEn(double q[],double k[][],int ranN);
 static double LeknerPotentialE_n(double q[],double k[][],int ranN);
 static double Lekner(double qi,double qj, double xi,double yi,double zi,double xj,double yj,double zj);
 
-static double RLJPotentialE(double k[][],double sigma);
-static double RLJPotentialEn(double k[][],int ranN,double sigma);
-static double RLJPotentialE_n(double k[][],int ranN,double sigma);
-static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj,double sigma);
+static double RLJPotentialE(double k[][],PARAMS pars);
+static double RLJPotentialEn(double k[][],int ranN,PARAMS pars);
+static double RLJPotentialE_n(double k[][],int ranN,PARAMS pars);
+static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj,PARAMS pars);
 
-static double LinePotentialE(double q[],double k[][], double amp, double lambda, double x0,double z0);
-static double LinePotentialEn(double q[],double k[][], double amp, double lambda, double x0,double z0,int ranN);
-static double LinePotentialE_n(double q[],double k[][], double amp, double lambda, double x0,double z0,int ranN);
-static double Line(double qi,double xi,double yi,double zi,double amp, double lambda,double x0,double z0);
+static double LinePotentialE(double q[],double k[][],PARAMS pars, double x0,double z0);
+static double LinePotentialEn(double q[],double k[][],PARAMS pars, double x0,double z0,int ranN);
+static double LinePotentialE_n(double q[],double k[][],PARAMS pars, double x0,double z0,int ranN);
+static double Line(double qi,double xi,double yi,double zi,PARAMS pars,double x0,double z0);
 
-static double LineRLJPotentialE(double k[][],double x0,double z0, double amp, double lambda,double sigma);
-static double LineRLJPotentialEn(double k[][],double x0,double z0, double amp, double lambda,int ranN,double sigma);
-static double LineRLJPotentialE_n(double k[][],double x0,double z0, double amp, double lambda,int ranN,double sigma);
-static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0,double sigma);
+static double LineRLJPotentialE(double k[][],double x0,double z0,PARAMS pars);
+static double LineRLJPotentialEn(double k[][],double x0,double z0,PARAMS pars,int ranN);
+static double LineRLJPotentialE_n(double k[][],double x0,double z0, PARAMS pars,int ranN);
+static double LineRLJ(double xi,double yi,double zi,PARAMS pars,double x0,double z0);
 
 static double my_bessk0(double x);
 static double my_bessk1(double x);
 
 static double ForceCoul_LineParticle(float q, double x, double y, double z, double x0, double z0);
-static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,double sigma);
+static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,PARAMS pars);
 static double ForceLine_Line(double x0, double z0, double x1, double z1);
 
 void settable(UL i1,UL i2,UL i3,UL i4,UL i5, UL i6)
@@ -82,14 +96,14 @@ int main(int argc,char **argv)
    int node;
    int size;
    unsigned long idum;
-   int T=atoi(argv[1]);
-   double kbTF=atof(argv[2]);
-   double amp=atof(argv[3]);
-   double lambda=atof(argv[4]);
-   double R=atof(argv[5]);
-   char base[32];
-   sprintf(base,"%s",argv[6]);
-   double kbT0=atof(argv[7]);
+   struct PARAMS pars;
+   pars.T=atoi(argv[1]);
+   pars.kbTF=atof(argv[2]);
+   pars.amp=atof(argv[3]);
+   pars.lambda=atof(argv[4]);
+   pars.R=atof(argv[5]);
+   sprintf(pars.base,"%s",argv[6]);
+   pars.kbT0=atof(argv[7]);
    double kbT;
    double kbTlist[10]= {5.0,4.0,3.0,2.0,1.5,1.0,0.5,0.3,0.1,0.05};
    double q[N];
@@ -105,14 +119,15 @@ int main(int argc,char **argv)
    double dx=1;
    double accepted=0.0;
    double accValsTested=0.0;
-   int seed = atoi(argv[8]); 
-   int coords_out = atoi(argv[9]);
-   double sigma = atof(argv[10]);
+   pars.seed = atoi(argv[8]); 
+   pars.coords_out = atoi(argv[9]);
+   pars.sigma = atof(argv[10]);
+   pars.rljEps = atof(argv[11]);
 
 //run bessels first
 printf("%f, %f\n",my_bessk0(1.356), my_bessk1(1.356));
 printf("%f\n",ForceCoul_LineParticle(-1.54 , 9.04 , 0.5 , -1.65 , 0.0 , 0.0)); 
-printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
+printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,pars));
 //printf("forces: %f\n",ForceLine_Line(0.125,0.014,-0.004,0.0));
 
 
@@ -126,19 +141,19 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
    MPI_Comm_rank(MPI_COMM_WORLD,&node);
    
    //Each node has diff initial conditions
-   idum=seed+node*100000000;
+   idum=pars.seed+node*100000000;
    
    //const char base[]="cRun.";
    char filename [32];
-   sprintf(filename, "%s%d",base, node);
+   sprintf(filename, "%s%d",pars.base, node);
 
    FILE *fp;   
-   if(coords_out==1){
+   if(pars.coords_out==1){
    fp=fopen(filename,"w");
    }
 
    char forceFilename [32];
-   sprintf(forceFilename, "for_%s%d",base, node);
+   sprintf(forceFilename, "for_%s%d",pars.base, node);
 
    FILE *ffp;   
    ffp=fopen(forceFilename,"w");
@@ -169,10 +184,10 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
    }
 
    //Main MC loop
-   double E=CalculateE(q,k,amp,lambda,R,sigma);//initial energy calculation
+   double E=CalculateE(q,k,pars);//initial energy calculation
    //printf("%f\n",E);
    
-   for(int s=0;s<T/size;s++)
+   for(int s=0;s<pars.T/size;s++)
    {
 	ranN=(int)floor(N*UNI);
 	for(int i=0;i<N;i++)
@@ -182,7 +197,7 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
         kTemp[2][i]=k[2][i];
 	}
 
-        kbT=(kbTF-kbT0)*s/(T-1)+kbT0;        
+        kbT=(pars.kbTF-pars.kbT0)*s/(pars.T-1)+pars.kbT0;        
 	
 	//test move
         ranR=sqrt(Lx*Lx*UNI);
@@ -194,8 +209,8 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,sigma));
 	kTemp[1][ranN]=ranY;
         kTemp[2][ranN]=ranR*sin(ranPhi);
 
-	double En=CalculateEn(q,k,amp,lambda,R,ranN,sigma);
-	double Enp=CalculateEn(q,kTemp,amp,lambda,R,ranN,sigma);
+	double En=CalculateEn(q,k,pars,ranN);
+	double Enp=CalculateEn(q,kTemp,pars,ranN);
 	De=Enp-En;
          
         if(node==0){
@@ -209,7 +224,7 @@ accValsTested++;
 	   k[1][ranN]=kTemp[1][ranN];
            k[2][ranN]=kTemp[2][ranN];
 	   if(node==0){accepted++;}
-	   double E_n=CalculateE_n(q,kTemp,amp,lambda,R,ranN,sigma);
+	   double E_n=CalculateE_n(q,kTemp,pars,ranN);
 	   E = E_n+Enp;
 	}
 	else if(exp(-De/kbT)>=UNI)
@@ -218,15 +233,15 @@ accValsTested++;
            k[1][ranN]=kTemp[1][ranN];
            k[2][ranN]=kTemp[2][ranN];
 	   if(node==0){accepted++;}
-	   double E_n=CalculateE_n(q,kTemp,amp,lambda,R,ranN,sigma);
+	   double E_n=CalculateE_n(q,kTemp,pars,ranN);
 	   E = E_n+Enp;
 	}
 
 	if(s%1000==0)//sanity check, output coords
 	{
-	     if(coords_out==1){
+	     if(pars.coords_out==1){
 		fprintf(fp,"%d\n",N);
-		fprintf(fp,"%d %f %f %f %f %f\n",T,kbT,amp,lambda,R,kbT0);
+		fprintf(fp,"%d %f %f %f %f %f\n",pars.T,kbT,pars.amp,pars.lambda,pars.R,pars.kbT0);
  		for(int i=0;i<N;i++)
 		{
 		   fprintf(fp,"0 %f %f %f\n",k[0][i],k[1][i],k[2][i]);
@@ -243,10 +258,10 @@ accValsTested++;
 		
 		 for (int j=0;j<N;j++)
 		 {
-		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*R,0.0,sigma);
-		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*R,0.0,sigma);	
-		   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*R,0.0);
-		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*R,0.0);
+		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0,pars);
+		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0,pars);	
+		   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0);
+		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
    		 }
 		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
 		}
@@ -261,7 +276,7 @@ if(node==0)
 {
    printf("Energy: %f\nAcceptance Rate: %f\n",energy,accepted/accValsTested);   
 }           
-   if(coords_out==1){
+   if(pars.coords_out==1){
    fclose(fp);}
    fclose(ffp);
    MPI_Finalize();
@@ -293,17 +308,17 @@ else
 	return 0;
 }
 
-static double CalculateE(double q[],double k[][],double amp, double lambda, double R,double sigma)
+static double CalculateE(double q[],double k[][],PARAMS p)
 {
-   return LeknerPotentialE(q,k)+LinePotentialE(q,k,amp,lambda,-0.5*R,0)+LinePotentialE(q,k,amp,lambda,0.5*R,0)+LineRLJPotentialE(k,-0.5*R,0,amp,lambda,sigma)+LineRLJPotentialE(k,0.5*R,0,amp,lambda,sigma);
+   return LeknerPotentialE(q,k)+LinePotentialE(q,k,p,-0.5*p.R,0)+LinePotentialE(q,k,p,0.5*p.R,0)+LineRLJPotentialE(k,-0.5*p.R,0,p)+LineRLJPotentialE(k,0.5*p.R,0,p);
 }
-static double CalculateEn(double q[],double k[][],double amp,double lambda,double R, int ranN,double sigma)
+static double CalculateEn(double q[],double k[][],PARAMS p, int ranN)
 {
-	return LeknerPotentialEn(q,k,ranN)+LinePotentialEn(q,k,amp,lambda,-0.5*R,0,ranN)+LinePotentialEn(q,k,amp,lambda,0.5*R,0,ranN)+LineRLJPotentialEn(k,-0.5*R,0,amp,lambda,ranN,sigma)+LineRLJPotentialEn(k,0.5*R,0,amp,lambda,ranN,sigma);
+	return LeknerPotentialEn(q,k,ranN)+LinePotentialEn(q,k,p,-0.5*p.R,0,ranN)+LinePotentialEn(q,k,p,0.5*p.R,0,ranN)+LineRLJPotentialEn(k,-0.5*p.R,0,p,ranN)+LineRLJPotentialEn(k,0.5*p.R,0,p,ranN);
 }
-static double CalculateE_n(double q[],double k[][],double amp,double lambda,double R, int ranN,double sigma)
+static double CalculateE_n(double q[],double k[][],PARAMS p, int ranN)
 {
-	return LeknerPotentialE_n(q,k,ranN)+LinePotentialE_n(q,k,amp,lambda,-0.5*R,0,ranN)+LinePotentialE_n(q,k,amp,lambda,0.5*R,0,ranN)+LineRLJPotentialE_n(k,-0.5*R,0,amp,lambda,ranN,sigma)+LineRLJPotentialE_n(k,0.5*R,0,amp,lambda,ranN,sigma);
+	return LeknerPotentialE_n(q,k,ranN)+LinePotentialE_n(q,k,p,-0.5*p.R,0,ranN)+LinePotentialE_n(q,k,p,0.5*p.R,0,ranN)+LineRLJPotentialE_n(k,-0.5*p.R,0,p,ranN)+LineRLJPotentialE_n(k,0.5*p.R,0,p,ranN);
 }
 
 static double LeknerPotentialE(double q[],double x[3][N])
@@ -367,7 +382,7 @@ for (int n = 1; n <= M; n++)
 }
 
 
-static double RLJPotentialE(double x[3][N],double sigma)
+static double RLJPotentialE(double x[3][N],PARAMS p)
 {
         double r;
         double pe = 0;			
@@ -377,13 +392,13 @@ static double RLJPotentialE(double x[3][N],double sigma)
             {
                 if (i != j)
                 {
-                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],sigma);
+                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],p);
                 }
             }
         }
         return pe;
 }
-static double RLJPotentialEn(double x[3][N],int ranN,double sigma)
+static double RLJPotentialEn(double x[3][N],int ranN,PARAMS p)
 {
         double r;
         double pe = 0;			
@@ -392,12 +407,12 @@ static double RLJPotentialEn(double x[3][N],int ranN,double sigma)
 		{
 			if (i != j)
 			{
-					pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],sigma);
+					pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],p);
 			}
 		}
         return pe;
 }
-static double RLJPotentialE_n(double x[3][N], int ranN,double sigma)
+static double RLJPotentialE_n(double x[3][N], int ranN,PARAMS p)
 {
         double r;
         double pe = 0;			
@@ -407,83 +422,83 @@ static double RLJPotentialE_n(double x[3][N], int ranN,double sigma)
             {
                 if (i != j && i!=ranN && j!=ranN)
                 {
-                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],sigma);
+                        pe += RLJ(x[0][i],x[1][i],x[2][i],x[0][j],x[1][j],x[2][j],p);
                 }
             }
         }
         return pe;
 }
-static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj,double sigma)
+static double RLJ( double xi,double yi,double zi,double xj,double yj,double zj,PARAMS p)
 {
 double r = sqrt((xj - xi) * (xj - xi) +(yj - yi) * (yj - yi)+ (zj - zi) * (zj - zi));
-if (r < 1.122 * sigma)
-	return 4.0 * rljEps * (pow(sigma / r,12.0) - pow(sigma / r,6.0) + 0.25);
+if (r < 1.122 * p.sigma)
+	return 4.0 * p.rljEps * (pow(p.sigma / r,12.0) - pow(p.sigma / r,6.0) + 0.25);
 else
 	return 0.0;
 }
 
 
-static double LinePotentialE(double q[N],double x[3][N],double amp, double lambda,double x0,double z0)
+static double LinePotentialE(double q[N],double x[3][N],PARAMS p,double x0,double z0)
 {
     double pe = 0;
 	
     for (int i = 0; i < N; i++)
     {
-        pe += Line(q[i],x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0);
+        pe += Line(q[i],x[0][i],x[1][i],x[2][i],p,x0,z0);
     }
     return pe;
 }
-static double LinePotentialEn(double q[N],double x[3][N],double amp, double lambda,double x0,double z0, int ranN)
+static double LinePotentialEn(double q[N],double x[3][N],PARAMS p,double x0,double z0, int ranN)
 {
     double pe = 0;
 	
     int i=ranN;
-    pe += Line(q[i],x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0);
+    pe += Line(q[i],x[0][i],x[1][i],x[2][i],p,x0,z0);
     return pe;
 }
-static double LinePotentialE_n(double q[N],double x[3][N],double amp, double lambda,double x0,double z0, int ranN)
+static double LinePotentialE_n(double q[N],double x[3][N],PARAMS p,double x0,double z0, int ranN)
 {
     double pe = 0;
 	
     for (int i = 0; i < N; i++)
     {
 	if(i!=ranN)
-        pe += Line(q[i],x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0);
+        pe += Line(q[i],x[0][i],x[1][i],x[2][i],p,x0,z0);
     }
     return pe;
 }
-static double Line(double qi,double xi,double yi,double zi,double amp, double lambda,double x0,double z0)
+static double Line(double qi,double xi,double yi,double zi,PARAMS p,double x0,double z0)
 {
 	double rxz = sqrt((xi - x0) * (xi - x0) + (zi - z0) * (zi - z0));
 	if(rxz<=0)
 		return 0.0;
 	else
 	return -2.0*qi*linCharge*log(rxz)+
-		4.0*amp*PI*qi*xi*linCharge*my_bessk1(twoPI*rxz/lambda)*sin(twoPI*yi/lambda)/rxz;
+		4.0*p.amp*PI*qi*xi*linCharge*my_bessk1(twoPI*rxz/p.lambda)*sin(twoPI*yi/p.lambda)/rxz;
 }
 
 
-static double LineRLJPotentialE(double x[3][N],double x0,double z0,double amp, double lambda,double sigma)
+static double LineRLJPotentialE(double x[3][N],double x0,double z0,PARAMS p)
 {
     double r;
     double pe = 0;
 	
     for (int i = 0; i < N; i++)
     {
-	pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0,sigma);
+	pe += LineRLJ(x[0][i],x[1][i],x[2][i],p,x0,z0);
     }
     return pe;
 }
-static double LineRLJPotentialEn(double x[3][N],double x0,double z0,double amp, double lambda, int ranN,double sigma)
+static double LineRLJPotentialEn(double x[3][N],double x0,double z0,PARAMS p, int ranN)
 {
     double r;
     double pe = 0;
 	
     int i=ranN;
-	pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0,sigma);
+	pe += LineRLJ(x[0][i],x[1][i],x[2][i],p,x0,z0);
     return pe;
 }
-static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,double amp, double lambda, int ranN,double sigma)
+static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,PARAMS p, int ranN)
 {
     double r;
     double pe = 0;
@@ -491,16 +506,16 @@ static double LineRLJPotentialE_n(double x[3][N],double x0,double z0,double amp,
     for (int i = 0; i < N; i++)
     {
 	if(i!=ranN)
-		pe += LineRLJ(x[0][i],x[1][i],x[2][i],amp,lambda,x0,z0,sigma);
+		pe += LineRLJ(x[0][i],x[1][i],x[2][i],p,x0,z0);
     }
     return pe;
 }
-static double LineRLJ(double xi,double yi,double zi,double amp, double lambda,double x0,double z0,double sigma)
+static double LineRLJ(double xi,double yi,double zi,PARAMS p,double x0,double z0)
 {
-double xa = x0+amp*sin(twoPI*yi/lambda);
+double xa = x0+p.amp*sin(twoPI*yi/p.lambda);
 double rxz = sqrt((xi-xa)*(xi-xa) + (zi-z0)*(zi-z0));
-if (rxz < 1.122 * sigma)
-	return 4.0*rljEps*(pow(sigma/rxz,12.0) - pow(sigma/rxz,6.0) + 0.25);
+if (rxz < 1.122 * p.sigma)
+	return 4.0*p.rljEps*(pow(p.sigma/rxz,12.0) - pow(p.sigma/rxz,6.0) + 0.25);
 else
 	return 0;
 }
@@ -513,13 +528,13 @@ static double ForceCoul_LineParticle(float q, double x, double y, double z, doub
 	else
 		return -1.0*(2.0*q*linCharge/rxz)*sqrt(1-z*z/(rxz*rxz));		
 }
-static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,double sigma)
+static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,PARAMS p)
 {
 	double rxz = sqrt((x - x0) * (x - x0) + (z - z0) * (z - z0));
-	double sigma6=pow(sigma,6);
+	double sigma6=pow(p.sigma,6);
 	double rxz6 = pow(rxz,6);
-	if(rxz < 1.122* sigma)
-		return -24.0*(x-x0)*rljEps*sigma6*(2.0*sigma6-rxz6)/(rxz6*rxz6*rxz*rxz);
+	if(rxz < 1.122* p.sigma)
+		return -24.0*(x-x0)*p.rljEps*sigma6*(2.0*sigma6-rxz6)/(rxz6*rxz6*rxz*rxz);
 	else
 		return 0.0;
 }
