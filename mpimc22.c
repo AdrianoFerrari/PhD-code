@@ -84,6 +84,7 @@ static double my_bessk1(double x);
 static double ForceCoul_LineParticle(float q, double x, double y, double z, double x0, double z0);
 static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,PARAMS pars);
 static double ForceLine_Line(double x0, double z0, double x1, double z1);
+static double GrowthRate(double s, float q, double x, double y, double z, double x0, double z0, PARAMS pars);
 
 void settable(UL i1,UL i2,UL i3,UL i4,UL i5, UL i6)
 { int i; z=i1;w=i2,jsr=i3; jcong=i4; a=i5; b=i6;
@@ -310,15 +311,15 @@ else
 
 static double CalculateE(double q[],double k[][],PARAMS p)
 {
-   return LeknerPotentialE(q,k)+LinePotentialE(q,k,p,-0.5*p.R,0)+LinePotentialE(q,k,p,0.5*p.R,0)+LineRLJPotentialE(k,-0.5*p.R,0,p)+LineRLJPotentialE(k,0.5*p.R,0,p);
+   return LeknerPotentialE(q,k)+RLJPotentialE(k,p)+LinePotentialE(q,k,p,-0.5*p.R,0)+LinePotentialE(q,k,p,0.5*p.R,0)+LineRLJPotentialE(k,-0.5*p.R,0,p)+LineRLJPotentialE(k,0.5*p.R,0,p);
 }
 static double CalculateEn(double q[],double k[][],PARAMS p, int ranN)
 {
-	return LeknerPotentialEn(q,k,ranN)+LinePotentialEn(q,k,p,-0.5*p.R,0,ranN)+LinePotentialEn(q,k,p,0.5*p.R,0,ranN)+LineRLJPotentialEn(k,-0.5*p.R,0,p,ranN)+LineRLJPotentialEn(k,0.5*p.R,0,p,ranN);
+	return LeknerPotentialEn(q,k,ranN)+RLJPotentialEn(k,ranN,p)+LinePotentialEn(q,k,p,-0.5*p.R,0,ranN)+LinePotentialEn(q,k,p,0.5*p.R,0,ranN)+LineRLJPotentialEn(k,-0.5*p.R,0,p,ranN)+LineRLJPotentialEn(k,0.5*p.R,0,p,ranN);
 }
 static double CalculateE_n(double q[],double k[][],PARAMS p, int ranN)
 {
-	return LeknerPotentialE_n(q,k,ranN)+LinePotentialE_n(q,k,p,-0.5*p.R,0,ranN)+LinePotentialE_n(q,k,p,0.5*p.R,0,ranN)+LineRLJPotentialE_n(k,-0.5*p.R,0,p,ranN)+LineRLJPotentialE_n(k,0.5*p.R,0,p,ranN);
+	return LeknerPotentialE_n(q,k,ranN)+RLJPotentialE_n(k,ranN,p)+LinePotentialE_n(q,k,p,-0.5*p.R,0,ranN)+LinePotentialE_n(q,k,p,0.5*p.R,0,ranN)+LineRLJPotentialE_n(k,-0.5*p.R,0,p,ranN)+LineRLJPotentialE_n(k,0.5*p.R,0,p,ranN);
 }
 
 static double LeknerPotentialE(double q[],double x[3][N])
@@ -547,3 +548,8 @@ static double ForceLine_Line(double x0,double z0,double x1,double z1)
 		return 0.0;
 }
 
+static double GrowthRate(double s, float q, double x, double y, double z, double x0, double z0, PARAMS p)
+{
+	double rxz = sqrt((x - x0 - p.amp*sin(twoPI*y/p.lambda)) * (x - x0 - p.amp*sin(twoPI*y/p.lambda)) + (z - z0) * (z - z0));
+	double rxzS = sqrt((x - x0) * (x - x0) + (z - z0) * (z - z0));
+}
