@@ -550,7 +550,7 @@ static double ForceLine_Line(double x0,double z0,double x1,double z1)
 
 static double GrowthRate(double s, float q, double x, double y, double z, double x0, double z0, PARAMS p)
 {
-	double dx = (x - x0 - p.amp*sin(twoPI*y/p.lambda));
+	double dx = (x - x0 - p.amp*sin(twoPI*s*Ly/p.lambda));
 	double rxz = sqrt(dx*dx  + (z - z0) * (z - z0));
 	double rxzS = sqrt((x - x0) * (x - x0) + (z - z0) * (z - z0));
         double G = 0.0;
@@ -558,12 +558,21 @@ static double GrowthRate(double s, float q, double x, double y, double z, double
 	for (int n = 1; n <= M; n++)
         {
         	vi += rxz <= 0 ? 0 :
-8.0*linCharge*q*cos(twoPI*n*(y-s*Ly)*uy)*(my_bessk1(twoPI*n*rxz*uy)-my_bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
+	8.0*linCharge*q*cos(twoPI*n*(y-s*Ly)*uy)*(my_bessk1(twoPI*n*rxz*uy)-my_bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
         }
         G = vi - 2.0*linCharge*q*(1/rxz-1/rxzS)*uy/(1.0*Ns);
 	return G/(p.amp*sin(twoPi*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx));
 }
-static double AverageGrowthRate(double q[N],double x[3][N],PARAMS pars, int Ns)
+static double AverageGrowthRate(double q[N],double x[3][N],PARAMS p, int Ns)
 {
-
+	double avgGL = 0;
+	double avgGR = 0;
+	for (int j = 0; j < Ns; j++)
+    	{
+	  for (int i = 0; i < N; i++){
+		avgGL += GrowthRate(j/Ns,q[i],x[0][i],x[1][i],x[2][i],-p.R/2,0,p);
+		avgGR += GrowthRate(j/Ns,q[i],x[0][i],x[1][i],x[2][i],p.R/2,0,p);
+	  }
+	}
+	return (avgGL+avgGR)*0.5;
 }
