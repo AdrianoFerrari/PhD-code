@@ -85,6 +85,7 @@ static double ForceCoul_LineParticle(float q, double x, double y, double z, doub
 static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,PARAMS pars);
 static double ForceLine_Line(double x0, double z0, double x1, double z1);
 static double GrowthRate(double s, float q, double x, double y, double z, double x0, double z0, PARAMS pars);
+static double AverageGrowthRate(double q[],double k[][],PARAMS pars, int Ns);
 
 void settable(UL i1,UL i2,UL i3,UL i4,UL i5, UL i6)
 { int i; z=i1;w=i2,jsr=i3; jcong=i4; a=i5; b=i6;
@@ -351,8 +352,7 @@ static double LeknerPotentialEn(double q[],double x[3][N], int ranN)
 		}
 
     return pe;
-	
-}
+	}
 static double LeknerPotentialE_n(double q[],double x[3][N], int ranN)
 {
 	double pe=0;
@@ -550,6 +550,20 @@ static double ForceLine_Line(double x0,double z0,double x1,double z1)
 
 static double GrowthRate(double s, float q, double x, double y, double z, double x0, double z0, PARAMS p)
 {
-	double rxz = sqrt((x - x0 - p.amp*sin(twoPI*y/p.lambda)) * (x - x0 - p.amp*sin(twoPI*y/p.lambda)) + (z - z0) * (z - z0));
+	double dx = (x - x0 - p.amp*sin(twoPI*y/p.lambda));
+	double rxz = sqrt(dx*dx  + (z - z0) * (z - z0));
 	double rxzS = sqrt((x - x0) * (x - x0) + (z - z0) * (z - z0));
+        double G = 0.0;
+	double vi = 0;
+	for (int n = 1; n <= M; n++)
+        {
+        	vi += rxz <= 0 ? 0 :
+8.0*linCharge*q*cos(twoPI*n*(y-s*Ly)*uy)*(my_bessk1(twoPI*n*rxz*uy)-my_bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
+        }
+        G = vi - 2.0*linCharge*q*(1/rxz-1/rxzS)*uy/(1.0*Ns);
+	return G/(p.amp*sin(twoPi*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx));
+}
+static double AverageGrowthRate(double q[N],double x[3][N],PARAMS pars, int Ns)
+{
+
 }
