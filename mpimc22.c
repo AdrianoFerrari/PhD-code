@@ -42,6 +42,7 @@ double rljEps;
 const int Nx = 64;//lattice points
 const int Ny = 96;//lattice points
 const int Nz = 10;//lattice points
+const int Ns = 31;//growth rate samplings
 const double Lx = 16.0;
 const double Ly = 24.0;
 const double uy = 0.041666666666;
@@ -561,7 +562,7 @@ static double GrowthRate(double s, float q, double x, double y, double z, double
 	8.0*linCharge*q*cos(twoPI*n*(y-s*Ly)*uy)*(my_bessk1(twoPI*n*rxz*uy)-my_bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
         }
         G = vi - 2.0*linCharge*q*(1/rxz-1/rxzS)*uy/(1.0*Ns);
-	return G/(p.amp*sin(twoPi*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx));
+	return G/(p.amp*sin(twoPI*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx)));
 }
 static double AverageGrowthRate(double q[N],double x[3][N],PARAMS p, int Ns)
 {
