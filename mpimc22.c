@@ -263,8 +263,19 @@ accValsTested++;
    		 }
 		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
 
-	         double g1 = GrowthRate(0.04166666,2.0,k[0][0],k[1][0],k[2][0],-0.5*pars.R,0.0,pars);
-                 fprintf(grwth,"%f,%f,%f,%f= %f\n",0.04166666,k[0][0],k[1][0],k[2][0],g1);
+		 double GL =0;double GR = 0;
+        	 double avgGL = 0;
+	         double avgGR = 0;
+        	 for (int j = 0; j < Ns; j++)
+	         {
+        	    for (int i = 0; i < N; i++){
+			GL = GrowthRate(j/Ns,q[i],k[0][i],k[1][i],k[2][i],-pars.R/2,0,pars);
+			GR =  GrowthRate(j/Ns,q[i],k[0][i],k[1][i],k[2][i],pars.R/2,0,pars);
+	                avgGL += GL;
+                	avgGR += GR;
+	                fprintf(grwth,"%f,%f,%f\n",j/(1.0*Ns),GL,GR);
+        	    }	
+                 }	         
 		}
 	}
 
