@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <mpi.h>
+#include "bessels.h"
 
 #define PI 3.14159265358979323846
 #define twoPI 6.283185307179586
@@ -127,10 +128,10 @@ int main(int argc,char **argv)
    pars.sigma = atof(argv[10]);
    pars.rljEps = atof(argv[11]);
 
-//run bessels first
+/*run bessels first
 printf("%f, %f\n",my_bessk0(1.356), my_bessk1(1.356));
 printf("%f\n",ForceCoul_LineParticle(-1.54 , 9.04 , 0.5 , -1.65 , 0.0 , 0.0)); 
-printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,pars));
+printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,pars));*/
 //printf("forces: %f\n",ForceLine_Line(0.125,0.014,-0.004,0.0));
 
 
@@ -387,7 +388,7 @@ static double Lekner(double qi,double qj, double xi,double yi,double zi,double x
 for (int n = 1; n <= M; n++)
 	{
 	vi += rxz <= 0 ? 0 : 
-	4.0*qi*qj*cos(twoPI*n*y*uy)*my_bessk0(twoPI*n*rxz*uy)*uy;
+	4.0*qi*qj*cos(twoPI*n*y*uy)*bessk0(twoPI*n*rxz*uy)*uy;
 	}
 	return vi - 2.0*qi*qj*log(rxz)*uy;
 }
@@ -485,7 +486,7 @@ static double Line(double qi,double xi,double yi,double zi,PARAMS p,double x0,do
 		return 0.0;
 	else
 	return -2.0*qi*linCharge*log(rxz)+
-		4.0*p.amp*PI*qi*xi*linCharge*my_bessk1(twoPI*rxz/p.lambda)*sin(twoPI*yi/p.lambda)/rxz;
+		4.0*p.amp*PI*qi*xi*linCharge*bessk1(twoPI*rxz/p.lambda)*sin(twoPI*yi/p.lambda)/rxz;
 }
 
 
@@ -569,7 +570,7 @@ static double GrowthRate(double s, float q, double x, double y, double z, double
         {
         	vi += rxz <= 0 ? 0 :
 	
-8.0*PI*linCharge*q*n*cos(twoPI*n*(y-s*Ly)*uy)*(my_bessk1(twoPI*n*rxz*uy)-my_bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
+8.0*PI*linCharge*q*n*cos(twoPI*n*(y-s*Ly)*uy)*(bessk1(twoPI*n*rxz*uy)-bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
         }
         G = vi + 2.0*linCharge*q*(1/rxz-1/rxzS)*uy/(1.0*Ns);
 	return G/(p.amp*sin(twoPI*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx)));
