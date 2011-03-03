@@ -161,6 +161,11 @@ printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,pars));
    FILE *ffp;   
    ffp=fopen(forceFilename,"w");
 
+   char grwthfilename [32];
+   sprintf(grwthfilename, "grw_%s%d",pars.base, node);
+   FILE *grwth;
+   grwth=fopen(grwthfilename,"w");
+
    settable(362436069,521288629,idum,380116160,224466889,7584631);
    if(1==1)
    {
@@ -267,6 +272,9 @@ accValsTested++;
 		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
    		 }
 		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
+
+	         double g1 = GrowthRate(0.5,2.0,k[0][0],k[1][0],k[2][0],-0.5*pars.R,0.0,pars);
+                 fprintf(grwth,"%f, %f\n",0.5,g1);
 		}
 	}
 
@@ -282,6 +290,7 @@ if(node==0)
    if(pars.coords_out==1){
    fclose(fp);}
    fclose(ffp);
+   fclose(grwth);
    MPI_Finalize();
 
 }

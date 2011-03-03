@@ -1,9 +1,9 @@
 #!/bin/bash
-#PBS -N test
+#PBS -N growthTest
 #PBS -l nodes=1:ppn=8,walltime=0:10:00
 
 # DIRECTORY TO RUN - $PBS_O_WORKDIR is directory job was submitted from
 cd $PBS_O_WORKDIR
 
-mpirun -np 8 ./mpimc22.exe 6000 4.0 0.0 4.0 0.02 test. 4.0 200895615 0
-#                         steps  Tf  amp  l   R  out    T0  seed  coords? 
+mpirun -np 8 ./mpimc22.exe 6000 4.0 0.01 4.0 0.2 growthTest. 4.0 200895615 0 0.4 3.0
+#                         steps  Tf  amp  l   R    out       T 0  seed  coords? 
