@@ -80,9 +80,6 @@ static double LineRLJPotentialEn(double k[][],double x0,double z0,PARAMS pars,in
 static double LineRLJPotentialE_n(double k[][],double x0,double z0, PARAMS pars,int ranN);
 static double LineRLJ(double xi,double yi,double zi,PARAMS pars,double x0,double z0);
 
-static double my_bessk0(double x);
-static double my_bessk1(double x);
-
 static double ForceCoul_LineParticle(float q, double x, double y, double z, double x0, double z0);
 static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,PARAMS pars);
 static double ForceLine_Line(double x0, double z0, double x1, double z1);
@@ -127,14 +124,6 @@ int main(int argc,char **argv)
    pars.coords_out = atoi(argv[9]);
    pars.sigma = atof(argv[10]);
    pars.rljEps = atof(argv[11]);
-
-/*run bessels first
-printf("%f, %f\n",my_bessk0(1.356), my_bessk1(1.356));
-printf("%f\n",ForceCoul_LineParticle(-1.54 , 9.04 , 0.5 , -1.65 , 0.0 , 0.0)); 
-printf("forces: %f\n",ForceRLJ_LineParticle(0.125,0.014,-0.004,0.0,0.0,pars));*/
-//printf("forces: %f\n",ForceLine_Line(0.125,0.014,-0.004,0.0));
-
-
 
 //set charges
    for(int i=0; i<N;i++)
@@ -295,32 +284,6 @@ if(node==0)
    MPI_Finalize();
 
 }
-double my_bessk0(double x)
-{
-int n;
-
-if(x<=30.1034)
-	{
-		n=(int)(2.078086921235028*(11.5129254649+log(x)))-1;
-		return bessk0y[n]+(bessk0y[n+1]-bessk0y[n])*(x-besskx[n])/(besskx[n+1]-besskx[n]);
-	}
-else
-	return 0;
-}
-double my_bessk1(double x)
-{
-int n;
-double xa,xb,ya,yb;
-
-if(x<=30.1034)
-	{
-		n=(int)(2.078086921235028*(11.5129254649+log(x)))-1;
-		return bessk1y[n]+(bessk1y[n+1]-bessk1y[n])*(x-besskx[n])/(besskx[n+1]-besskx[n]);
-	}
-else
-	return 0;
-}
-
 static double CalculateE(double q[],double k[][],PARAMS p)
 {
    return LeknerPotentialE(q,k)+RLJPotentialE(k,p)+LinePotentialE(q,k,p,-0.5*p.R,0)+LinePotentialE(q,k,p,0.5*p.R,0)+LineRLJPotentialE(k,-0.5*p.R,0,p)+LineRLJPotentialE(k,0.5*p.R,0,p);
