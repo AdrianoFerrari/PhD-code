@@ -568,11 +568,10 @@ static double GrowthRate(double s, float q, double x, double y, double z, double
 	double vi = 0;
 	for (int n = 1; n <= M; n++)
         {
-        	vi += rxz <= 0 ? 0 :
-	
+        	vi += rxz <= 0 ? 0 :	
 8.0*PI*linCharge*q*n*cos(twoPI*n*(y-s*Ly)*uy)*(bessk1(twoPI*n*rxz*uy)-bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
         }
-        G = vi + 2.0*linCharge*q*(1/rxz-1/rxzS)*uy/(1.0*Ns);
+        G = vi + 2.0*linCharge*q*(1/rxz-1/rxzS)/(1.0*Ns);
 	return G/(p.amp*sin(twoPI*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx)));
 }
 static double AverageGrowthRate(double q[N],double x[3][N],PARAMS p, int Ns)
