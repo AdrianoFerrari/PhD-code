@@ -274,7 +274,7 @@ accValsTested++;
 		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
 
 	         double g1 = GrowthRate(0.04166666,2.0,k[0][0],k[1][0],k[2][0],-0.5*pars.R,0.0,pars);
-                 fprintf(grwth,"%f, %f\n",0.5,g1);
+                 fprintf(grwth,"%f,%f,%f,%f= %f\n",0.04166666,k[0][0],k[1][0],k[2][0],g1);
 		}
 	}
 
