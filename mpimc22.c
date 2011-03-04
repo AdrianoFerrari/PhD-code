@@ -266,11 +266,11 @@ accValsTested++;
 		 double GL =0;double GR = 0;
         	 double avgGL = 0;
 	         double avgGR = 0;
-        	 for (int j = 0; j < Ns; j++)
+        	 for (int j = 1; j < Ns; j++)
 	         {
         	    for (int i = 0; i < N; i++){
-			GL = GrowthRate(j/Ns,q[i],k[0][i],k[1][i],k[2][i],-pars.R/2,0,pars);
-			GR =  GrowthRate(j/Ns,q[i],k[0][i],k[1][i],k[2][i],pars.R/2,0,pars);
+			GL = GrowthRate(j/(1.0*Ns),q[i],k[0][i],k[1][i],k[2][i],-pars.R*0.5,0,pars);
+			GR = GrowthRate(j/(1.0*Ns),q[i],k[0][i],k[1][i],k[2][i],pars.R*0.5,0,pars);
 	                avgGL += GL;
                 	avgGR += GR;
 	                fprintf(grwth,"%f,%f,%f\n",j/(1.0*Ns),GL,GR);
