@@ -43,7 +43,7 @@ double rljEps;
 const int Nx = 64;//lattice points
 const int Ny = 96;//lattice points
 const int Nz = 10;//lattice points
-const int Ns = 31;//growth rate samplings
+const int Ns = 103;//growth rate samplings
 const double Lx = 16.0;
 const double Ly = 24.0;
 const double uy = 0.041666666666;
