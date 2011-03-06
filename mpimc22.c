@@ -183,8 +183,10 @@ int main(int argc,char **argv)
 
    //Main MC loop
    double E=CalculateE(q,k,pars);//initial energy calculation
-   //printf("%f\n",E);
-   
+   //printf("%f\n",E);   
+   int Gdenom = 0;
+   double avgG = 0.0;
+
    for(int s=0;s<pars.T/size;s++)
    {
 	ranN=(int)floor(N*UNI);
@@ -262,24 +264,14 @@ accValsTested++;
 		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
    		 }
 		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
-
-		 double GL =0;double GR = 0;
-        	 double avgGL = 0;
-	         double avgGR = 0;
-        	 for (int j = 1; j < Ns; j++)
-	         {
-        	    for (int i = 0; i < N; i++){
-			GL = GrowthRate(j/(1.0*Ns),q[i],k[0][i],k[1][i],k[2][i],-pars.R*0.5,0,pars);
-			GR = GrowthRate(j/(1.0*Ns),q[i],k[0][i],k[1][i],k[2][i],pars.R*0.5,0,pars);
-	                avgGL += GL;
-                	avgGR += GR;
-	                fprintf(grwth,"%f,%f,%f\n",j/(1.0*Ns),GL,GR);
-        	    }	
-                 }	         
-		}
-	}
-
-   }
+                 avgG += AverageGrowthRate(q,k,pars,Ns);
+		 Gdenom++;
+		}//end of s%4000
+	}//end of s%1000
+   }//end of main s loop
+   
+   avgG = avgG/(1.0*Gdenom);
+   fprintf(grwth,"%f\n",avgG);
  
 MPI_Reduce(&myenergy,&energy,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
@@ -552,11 +544,11 @@ static double AverageGrowthRate(double q[N],double x[3][N],PARAMS p, int Ns)
 {
 	double avgGL = 0;
 	double avgGR = 0;
-	for (int j = 0; j < Ns; j++)
+	for (int j = 1; j < Ns; j++)
     	{
 	  for (int i = 0; i < N; i++){
-		avgGL += GrowthRate(j/Ns,q[i],x[0][i],x[1][i],x[2][i],-p.R/2,0,p);
-		avgGR += GrowthRate(j/Ns,q[i],x[0][i],x[1][i],x[2][i],p.R/2,0,p);
+	     	avgGL += GrowthRate(j/(1.0*Ns),q[i],x[0][i],x[1][i],x[2][i],-p.R*0.5,0,p);
+          	avgGR += GrowthRate(j/(1.0*Ns),q[i],x[0][i],x[1][i],x[2][i],p.R*0.5,0,p);
 	  }
 	}
 	return (avgGL+avgGR)*0.5;
