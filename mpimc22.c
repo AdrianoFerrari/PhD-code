@@ -38,12 +38,12 @@ int seed;
 int coords_out;
 double sigma;
 double rljEps;
+int Ns;
 } PARAMS;
 
 const int Nx = 64;//lattice points
 const int Ny = 96;//lattice points
 const int Nz = 10;//lattice points
-const int Ns = 103;//growth rate samplings
 const double Lx = 16.0;
 const double Ly = 24.0;
 const double uy = 0.041666666666;
@@ -84,7 +84,7 @@ static double ForceCoul_LineParticle(float q, double x, double y, double z, doub
 static double ForceRLJ_LineParticle(double x, double y, double z, double x0, double z0,PARAMS pars);
 static double ForceLine_Line(double x0, double z0, double x1, double z1);
 static double GrowthRate(double s, float q, double x, double y, double z, double x0, double z0, PARAMS pars);
-static double AverageGrowthRate(double q[],double k[][],PARAMS pars, int Ns);
+static double AverageGrowthRate(double q[],double k[][],PARAMS pars);
 
 void settable(UL i1,UL i2,UL i3,UL i4,UL i5, UL i6)
 { int i; z=i1;w=i2,jsr=i3; jcong=i4; a=i5; b=i6;
@@ -124,6 +124,7 @@ int main(int argc,char **argv)
    pars.coords_out = atoi(argv[9]);
    pars.sigma = atof(argv[10]);
    pars.rljEps = atof(argv[11]);
+   pars.Ns = atoi(argv[12]);
 
 //set charges
    for(int i=0; i<N;i++)
@@ -264,7 +265,7 @@ accValsTested++;
 		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
    		 }
 		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
-                 avgG += AverageGrowthRate(q,k,pars,Ns);
+                 avgG += AverageGrowthRate(q,k,pars);
 		 Gdenom++;
 		}//end of s%4000
 	}//end of s%1000
@@ -535,20 +536,20 @@ static double GrowthRate(double s, float q, double x, double y, double z, double
 	for (int n = 1; n <= M; n++)
         {
         	vi += rxz <= 0 ? 0 :	
-8.0*PI*linCharge*q*n*cos(twoPI*n*(y-s*Ly)*uy)*(bessk1(twoPI*n*rxz*uy)-bessk1(twoPI*n*rxzS*uy))*uy/(1.0*Ns);
+8.0*PI*linCharge*q*n*cos(twoPI*n*(y-s*Ly)*uy)*(bessk1(twoPI*n*rxz*uy)-bessk1(twoPI*n*rxzS*uy))*uy/(1.0*p.Ns);
         }
-        G = vi + 2.0*linCharge*q*(1/rxz-1/rxzS)/(1.0*Ns);
+        G = vi + 2.0*linCharge*q*(1/rxz-1/rxzS)/(1.0*p.Ns);
 	return G/(p.amp*sin(twoPI*s*Ly/p.lambda)*sqrt(1+(z-z0)*(z-z0)/(dx*dx)));
 }
-static double AverageGrowthRate(double q[N],double x[3][N],PARAMS p, int Ns)
+static double AverageGrowthRate(double q[N],double x[3][N],PARAMS p)
 {
 	double avgGL = 0;
 	double avgGR = 0;
-	for (int j = 1; j < Ns; j++)
+	for (int j = 1; j < p.Ns; j++)
     	{
 	  for (int i = 0; i < N; i++){
-	     	avgGL += GrowthRate(j/(1.0*Ns),q[i],x[0][i],x[1][i],x[2][i],-p.R*0.5,0,p);
-          	avgGR += GrowthRate(j/(1.0*Ns),q[i],x[0][i],x[1][i],x[2][i],p.R*0.5,0,p);
+	     	avgGL += GrowthRate(j/(1.0*p.Ns),q[i],x[0][i],x[1][i],x[2][i],-p.R*0.5,0,p);
+          	avgGR += GrowthRate(j/(1.0*p.Ns),q[i],x[0][i],x[1][i],x[2][i],p.R*0.5,0,p);
 	  }
 	}
 	return (avgGL+avgGR)*0.5;
