@@ -27,7 +27,7 @@ t[256]*/
 static UL x=0,y=0,bro; static unsigned char c=0;
 
 typedef struct PARAMS{
-int T;
+unsigned int T;
 double kbTF;
 double amp;
 double lambda;
@@ -149,8 +149,8 @@ int main(int argc,char **argv)
    char forceFilename [32];
    sprintf(forceFilename, "for_%s%d",pars.base, node);
 
-   FILE *ffp;   
-   ffp=fopen(forceFilename,"w");
+  // FILE *ffp;   
+  // ffp=fopen(forceFilename,"w");
 
    char grwthfilename [32];
    sprintf(grwthfilename, "grw_%s%d",pars.base, node);
@@ -249,7 +249,7 @@ accValsTested++;
 		}
       	     }
 
-		if(s%4000 ==0)
+		if(s%1000 ==0)
 		{
 		 //calculate forces and printout
 		 double FrljL=0.0;
@@ -257,17 +257,17 @@ accValsTested++;
 		 double FplL=0.0;
 		 double FplR=0.0;
 		
-		 for (int j=0;j<N;j++)
-		 {
-		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0,pars);
-		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0,pars);	
-		   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0);
-		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
-   		 }
-		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
+//		 for (int j=0;j<N;j++)
+//		 {
+//		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0,pars);
+//		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0,pars);	
+//		   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0);
+//		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
+//   		 }
+//		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
                  avgG += AverageGrowthRate(q,k,pars);
 		 Gdenom++;
-		}//end of s%4000
+		}//end of s%1000
 	}//end of s%1000
    }//end of main s loop
    
@@ -283,7 +283,7 @@ if(node==0)
 }           
    if(pars.coords_out==1){
    fclose(fp);}
-   fclose(ffp);
+//   fclose(ffp);
    fclose(grwth);
    MPI_Finalize();
 
