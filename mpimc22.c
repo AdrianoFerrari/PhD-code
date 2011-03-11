@@ -36,6 +36,8 @@ char base[32];
 double kbT0;
 int seed;
 int coords_out;
+int force_out;
+int growth_out;
 double sigma;
 double rljEps;
 int Ns;
@@ -122,9 +124,11 @@ int main(int argc,char **argv)
    double accValsTested=0.0;
    pars.seed = atoi(argv[8]); 
    pars.coords_out = atoi(argv[9]);
-   pars.sigma = atof(argv[10]);
-   pars.rljEps = atof(argv[11]);
-   pars.Ns = atoi(argv[12]);
+   pars.force_out = atoi(argv[10]);
+   pars.growth_out = atoi(argv[11]);
+   pars.sigma = atof(argv[12]);
+   pars.rljEps = atof(argv[13]);
+   pars.Ns = atoi(argv[14]);
 
 //set charges
    for(int i=0; i<N;i++)
@@ -142,20 +146,24 @@ int main(int argc,char **argv)
    sprintf(filename, "%s%d",pars.base, node);
 
    FILE *fp;   
-   if(pars.coords_out==1){
+   if(pars.coords_out!=0){
    fp=fopen(filename,"w");
    }
 
    char forceFilename [32];
    sprintf(forceFilename, "for_%s%d",pars.base, node);
 
-  // FILE *ffp;   
-  // ffp=fopen(forceFilename,"w");
+   FILE *ffp;
+   if(pars.force_out!=0){
+   ffp=fopen(forceFilename,"w");
+   }
 
    char grwthfilename [32];
    sprintf(grwthfilename, "grw_%s%d",pars.base, node);
    FILE *grwth;
+   if(pars.growth_out!=0){
    grwth=fopen(grwthfilename,"w");
+   }
 
    settable(362436069,521288629,idum,380116160,224466889,7584631);
    if(1==1)
@@ -238,41 +246,45 @@ accValsTested++;
 	   E = E_n+Enp;
 	}
 
-	if(s%1000==0)//sanity check, output coords
+	if(pars.coords_out!=0 && s%pars.coords_out==0)//sanity check, output coords
 	{
-	     if(pars.coords_out==1){
 		fprintf(fp,"%d\n",N);
 		fprintf(fp,"%d %f %f %f %f %f\n",pars.T,kbT,pars.amp,pars.lambda,pars.R,pars.kbT0);
- 		for(int i=0;i<N;i++)
+		for(int i=0;i<N;i++)
 		{
 		   fprintf(fp,"0 %f %f %f\n",k[0][i],k[1][i],k[2][i]);
 		}
-      	     }
+	}
 
-		if(s%1000 ==0)
-		{
-		 //calculate forces and printout
-		 double FrljL=0.0;
-		 double FrljR=0.0;
-		 double FplL=0.0;
-		 double FplR=0.0;
+	if(pars.force_out!=0 && s%pars.force_out ==0)
+	{
+	 double FrljL=0.0;
+	 double FrljR=0.0;
+	 double FplL=0.0;
+	 double FplR=0.0;
 		
-//		 for (int j=0;j<N;j++)
-//		 {
-//		   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0,pars);
-//		   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0,pars);	
-//		   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0);
-//		   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
-//   		 }
-//		 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
-                 avgG += AverageGrowthRate(q,k,pars);
-		 Gdenom++;
-		}//end of s%1000
-	}//end of s%1000
+	 for (int j=0;j<N;j++)
+	 {
+	   FrljL+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0,pars);
+	   FrljR+=ForceRLJ_LineParticle(k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0,pars);	
+	   FplL+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],-0.5*pars.R,0.0);
+	   FplR+=ForceCoul_LineParticle(q[j],k[0][j],k[1][j],k[2][j],0.5*pars.R,0.0);
+	 }
+	 fprintf(ffp,"%f,%f,%f,%f\n",FplL,FplR,FrljL,FrljR);
+	}
+	
+	if(pars.growth_out!=0 && s%pars.growth_out==0)
+	{
+         avgG += AverageGrowthRate(q,k,pars);
+	 Gdenom++;
+	}
    }//end of main s loop
    
+   if(pars.growth_out!=0)
+   {
    avgG = avgG/(1.0*Gdenom);
    fprintf(grwth,"%f\n",avgG);
+   }
  
 MPI_Reduce(&myenergy,&energy,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
@@ -281,13 +293,11 @@ if(node==0)
 {
    printf("Energy: %f\nAcceptance Rate: %f\n",energy,accepted/accValsTested);   
 }           
-   if(pars.coords_out==1){
-   fclose(fp);}
-//   fclose(ffp);
-   fclose(grwth);
+   if(pars.coords_out!=0){fclose(fp);}
+   if(pars.force_out!=0){fclose(ffp);}
+   if(pars.growth_out!=0){fclose(grwth);}
    MPI_Finalize();
-
-}
+}//end of main
 static double CalculateE(double q[],double k[][],PARAMS p)
 {
    return LeknerPotentialE(q,k)+RLJPotentialE(k,p)+LinePotentialE(q,k,p,-0.5*p.R,0)+LinePotentialE(q,k,p,0.5*p.R,0)+LineRLJPotentialE(k,-0.5*p.R,0,p)+LineRLJPotentialE(k,0.5*p.R,0,p);
