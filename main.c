@@ -10,8 +10,7 @@ double lekner_potential(double q0, double x0, double y0, double z0, double q1, d
     int n;
     for (n = 1; n <= M; n++)
 	{
-            vi += rxz <= 0 ? 0 : 
-                4.0*q0*q1*cos(twoPI*n*y*uy)*bessk0(twoPI*n*rxz*uy)*uy;
+            vi += 4.0*q0*q1*cos(twoPI*n*y*uy)*bessk0(twoPI*n*rxz*uy)*uy;
 	}
     return vi - 2.0*q0*q1*log(rxz)*uy;
 }
