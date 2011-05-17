@@ -26,3 +26,22 @@ double repulsive_potential(double x0,double y0,double z0,double x1,double y1,dou
     return epsilon/pow(r2,6);
   }
 }
+double pair_potential_energy(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1, double epsilon) {
+  return repulsive_potential(x0,y0,z0,x1,y1,z1,epsilon) + lekner_potential(q0,x0,y0,z0,q1,x1,y1,z1);
+}
+double particle_total_potential(double x[][3], double q[], int size, double eps, int i) {
+  int j;
+  double pe = 0.0;
+  double q0 = q[i];
+  double x0 = x[i][0];  
+  double y0 = x[i][1];  
+  double z0 = x[i][2];
+
+  for(j=0;j<size;j++) {
+    if(j != i) {
+      pe += pair_potential_energy(q0,x0,y0,z0,q[j],x[j][0],x[j][1],x[j][2],eps);
+    }
+  }
+  
+  return pe;
+}

@@ -18,6 +18,6 @@ x=1234567890987654321ULL,c=123456123456123456ULL,
 const double uy = 0.041666666666;
 const int M = 7;//Lekner terms
 
-double dummy_function();
-double lekner_potential(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1 );
-double repulsive_potential(double x0,double y0,double z0,double x1,double y1,double z1, double epsilon);
+//double dummy_function();
+//double lekner_potential(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1 );
+//double repulsive_potential(double x0,double y0,double z0,double x1,double y1,double z1, double epsilon);
