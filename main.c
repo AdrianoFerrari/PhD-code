@@ -26,6 +26,27 @@ double repulsive_potential(double x0,double y0,double z0,double x1,double y1,dou
     return epsilon/pow(r2,6);
   }
 }
+double line_potential(double q1, double x1, double y1, double z1, double qL, double xL, double zL, double A, double lambda) {
+  double rxz = sqrt((x1 - xL) * (x1 - xL) + (z1 - zL) * (z1 - zL));
+  if(rxz<=0)
+    return 0.0;
+  else
+    return -2.0*q1*qL*log(rxz)+
+		4.0*A*PI*q1*x1*qL*bessk1(twoPI*rxz/lambda)*sin(twoPI*y1/lambda)/rxz;
+}
+double line_repulsive_potential(double epsilon, double x0,double y0,double z0,double xL,double zL, double A, double lambda) {
+  double xa = xL + A*sin(twoPI*y0/lambda);
+  double r2 = (x0 - xa)*(x0 - xa) + (z0 - zL)*(z0 - zL);
+  if (r2 > 10.0*pow(epsilon,0.166666)) {
+    return 0.0;
+  }
+  else if (r2 == 0.0) {
+    return 10e20;
+  }
+  else {
+    return epsilon/pow(r2,6);
+  }
+}
 double pair_potential_energy(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1, double epsilon) {
   return repulsive_potential(x0,y0,z0,x1,y1,z1,epsilon) + lekner_potential(q0,x0,y0,z0,q1,x1,y1,z1);
 }

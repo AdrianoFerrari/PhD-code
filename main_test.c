@@ -33,6 +33,38 @@ static void test_repulsive_potential_3() {
 static void test_repulsive_potential_4() {
   assert(repulsive_potential(1.0,1.0,1.0,1.0,1.0,1.0,1.0) == 10e20);
 }
+static void test_line_potential_1() {
+  double val = line_potential(1.0,2.0,3.0,4.0, 2.0,0.0,0.0, 0.5, 2.0);
+  double expected = -5.99146;
+  assert(val <= expected*0.995
+	 &&
+	 val >= expected*1.005
+	 );
+}
+static void test_line_potential_2() {
+  double val = line_potential(-0.223613, -0.613204, -0.500095, -0.811417, -0.712559, -0.0448241, -0.984596, 0.856894, 0.609515);
+  double expected = 0.164019;
+  assert(val >= expected*0.995
+	 &&
+	 val <= expected*1.005
+	 );
+}
+static void test_line_repulsive_potential_1() {
+  double val = line_repulsive_potential(0.664857, 0.302964, -0.762206, -0.842198, 0.262977, -0.21951, 0.843407, 0.353052);
+  double expected = 0.911892; 
+  assert(val >= expected*0.995
+	 &&
+	 val <= expected*1.005
+	 );
+}
+static void test_line_repulsive_potential_2() {
+  double val = line_repulsive_potential(0.128893,1.3044,-11.3497,-4.12898,-11.591,1.11956,10.933,8.8148);
+  double expected = 0.0; 
+  assert(val >= expected*0.995
+	 &&
+	 val <= expected*1.005
+	 );
+}
 static void test_kiss_rng() {
   int i; 
   for(i=0;i<100000000;i++) t=KISS;
@@ -86,6 +118,7 @@ static void test_single_particle_energy_2() {
 	 );
 }
 
+
 int main() {
   //test_dummy_function();
   //test_lekner_potential_1();
@@ -94,10 +127,15 @@ int main() {
   //test_repulsive_potential_2();  
   //test_repulsive_potential_3();
   //test_repulsive_potential_4();
+  test_line_potential_1();
+  test_line_potential_2();
+  test_line_repulsive_potential_1();
+  test_line_repulsive_potential_2();
   //test_kiss_rng();
-  test_kiss_rng_seed();
+  //test_kiss_rng_seed();
   //test_pair_potential_energy_1();  
   //test_pair_potential_energy_2();
   //test_single_particle_energy_1();  
   //test_single_particle_energy_2();
+
 }
