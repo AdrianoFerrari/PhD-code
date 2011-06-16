@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdbool.h>
 #include "bessels.h"
 
 #define PI 3.14159265358979323846
@@ -12,6 +13,7 @@ https://groups.google.com/group/comp.lang.fortran/browse_thread/thread/a85bf5f2a
 #define XSH ( y^=(y<<13), y^=(y>>17), y^=(y<<43) ) 
 #define CNG ( z=6906969069LL*z+1234567 ) 
 #define KISS (MWC+XSH+CNG) 
+#define UNI (KISS*5.421010862e-20)
 typedef unsigned long long ULL;
 static ULL x=1234567890987654321ULL,c=123456123456123456ULL, y=362436362436362436ULL,z=1066149217761810ULL,t; 
 

@@ -1,7 +1,6 @@
 #include "main.c"
 
 #include <assert.h>
-#include <stdbool.h>
 
 static void test_dummy_function() {
   assert(dummy_function() == 1.234);
@@ -76,6 +75,17 @@ static void test_kiss_rng_seed() {
   settable(1234567890987654321ULL, 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
   for(i=0;i<100000000;i++) t=KISS;
   assert(t==1666297717051644203ULL);
+}
+static void test_kiss_uni() {
+  double sum = 0.0;
+  int i;
+  for(i=0; i<100000;i++){
+    sum += UNI;
+  }
+  assert(sum/100000 >= 0.5*0.995
+	 &&
+	 sum/100000 <= 0.5*1.005
+	 );
 }
 static void test_pair_potential_energy_1() {
   double val = pair_potential_energy(-0.043, 0.256, 0.733, -0.209, 0.957, -0.555, 0.916, 0.637, 0.208);
@@ -160,6 +170,42 @@ static void test_energy_difference_2() {
 	 val <= expected*1.005
 	 );
 }
+static void test_go_ahead_1() {
+  double kbT = 1.0;
+  double De = -0.123;
+  bool val = go_ahead(De,kbT);
+  assert( val == true);
+}
+static void test_go_ahead_2() {
+  double kbT = 1.0;
+  double De = 1e9;
+  bool val = go_ahead(De,kbT);
+  assert( val == false);
+}
+static void test_go_ahead_3() {
+  double sum = 0.0;
+  double expected = 0.2236;
+  int i;
+  for(i=0;i<100000;i++) {
+    sum += go_ahead(1.5,1.0);
+  }
+  assert(sum/100000 >= expected*0.95
+	 &&
+	 sum/100000 <= expected*1.05
+	 );
+}
+static void test_go_ahead_4() {
+  double sum = 0.0;
+  double expected = 0.011193;
+  int i;
+  for(i=0;i<100000;i++) {
+    sum += go_ahead(4.5,1.0);
+  }
+  assert(sum/100000 >= expected*0.95
+	 &&
+	 sum/100000 <= expected*1.05
+	 );
+}
 
 int main() {
   //test_dummy_function();
@@ -175,11 +221,16 @@ int main() {
   //test_line_repulsive_potential_2();
   //test_kiss_rng();
   //test_kiss_rng_seed();
+  //test_kiss_uni();
   //test_pair_potential_energy_1();  
   //test_pair_potential_energy_2();
   //test_particle_total_pair_potential_1();
-  test_particle_total_potential_1();  
-  test_particle_total_potential_2();
-  test_energy_difference_1();
-  test_energy_difference_2();
+  //test_particle_total_potential_1();  
+  //test_particle_total_potential_2();
+  //test_energy_difference_1();
+  //test_energy_difference_2();
+  test_go_ahead_1();
+  test_go_ahead_2();
+  test_go_ahead_3();
+  test_go_ahead_4();
 }

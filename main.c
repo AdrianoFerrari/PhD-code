@@ -77,3 +77,9 @@ double energy_difference(double x[][3], double xn[][3], double q[], int size, in
   double new_energy = particle_total_potential(xn,q,size,i,eps,qL,xL,zL,A,lambda);
   return new_energy - energy;
 }
+bool go_ahead(double De, double kbT) {
+  if(UNI < fmin(1.0,exp(-De/kbT))) {
+      return true;
+    }
+  else return false;
+}
