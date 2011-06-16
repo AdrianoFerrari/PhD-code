@@ -47,10 +47,13 @@ double line_repulsive_potential(double epsilon, double x0,double y0,double z0,do
     return epsilon/pow(r2,6);
   }
 }
+double total_line_potential(double x[][3], double q[], double eps, int i, double qL, double xL, double zL, double A, double lambda) {
+  return line_potential(q[i],x[i][0],x[i][1],x[i][2],qL,xL,zL,A,lambda) + line_repulsive_potential(eps,x[i][0],x[i][1],x[i][2],xL,zL,A,lambda);
+}
 double pair_potential_energy(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1, double epsilon) {
   return repulsive_potential(x0,y0,z0,x1,y1,z1,epsilon) + lekner_potential(q0,x0,y0,z0,q1,x1,y1,z1);
 }
-double particle_total_potential(double x[][3], double q[], int size, double eps, int i) {
+double particle_total_pair_potential(double x[][3], double q[], int size, double eps, int i) {
   int j;
   double pe = 0.0;
   double q0 = q[i];
@@ -65,4 +68,12 @@ double particle_total_potential(double x[][3], double q[], int size, double eps,
   }
   
   return pe;
+}
+double particle_total_potential(double x[][3], double q[], int size, int i, double eps, double qL, double xL, double zL, double A, double lambda) {
+  return particle_total_pair_potential(x,q,size,eps,i)+total_line_potential(x,q,eps,i,qL,xL,zL,A,lambda);
+}
+double energy_difference(double x[][3], double xn[][3], double q[], int size, int i, double eps, double qL, double xL, double zL, double A, double lambda) {
+  double energy = particle_total_potential(x,q,size,i,eps,qL,xL,zL,A,lambda);
+  double new_energy = particle_total_potential(xn,q,size,i,eps,qL,xL,zL,A,lambda);
+  return new_energy - energy;
 }
