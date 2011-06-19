@@ -69,12 +69,12 @@ double particle_total_pair_potential(double x[][3], double q[], int size, double
   
   return pe;
 }
-double particle_total_potential(double x[][3], double q[], int size, int i, double eps, double qL, double xL, double zL, double A, double lambda) {
-  return particle_total_pair_potential(x,q,size,eps,i)+total_line_potential(x,q,eps,i,qL,xL,zL,A,lambda);
+double particle_total_potential(double x[][3], double q[], int size, int i, double eps, double qL, double xL1, double zL1, double A1, double xL2, double zL2, double A2, double lambda) {
+  return particle_total_pair_potential(x,q,size,eps,i)+total_line_potential(x,q,eps,i,qL,xL1,zL1,A1,lambda)+total_line_potential(x,q,eps,i,qL,xL2,zL2,A2,lambda);
 }
-double energy_difference(double x[][3], double xn[][3], double q[], int size, int i, double eps, double qL, double xL, double zL, double A, double lambda) {
-  double energy = particle_total_potential(x,q,size,i,eps,qL,xL,zL,A,lambda);
-  double new_energy = particle_total_potential(xn,q,size,i,eps,qL,xL,zL,A,lambda);
+double energy_difference(double x[][3], double xn[][3], double q[], int size, int i, double eps, double qL, double xL1, double zL1, double A1, double xL2, double zL2, double A2, double lambda) {
+  double energy = particle_total_potential(x,q,size,i,eps,qL,xL1,zL1,A1,xL2,zL2,A2,lambda);
+  double new_energy = particle_total_potential(xn,q,size,i,eps,qL,xL1,zL1,A1,xL2,zL2,A2,lambda);
   return new_energy - energy;
 }
 bool go_ahead(double De, double kbT) {
@@ -82,4 +82,36 @@ bool go_ahead(double De, double kbT) {
       return true;
     }
   else return false;
+}
+double line_growth_at_pt_from_particle(double s, double q, double x, double y, double z, double qL, double xL, double zL, double A, double lambda, int Ns) {
+  double dx = (x - xL - A*sin(twoPI*s*Ly/lambda));
+  double rxz = sqrt(dx*dx  + (z - zL) * (z - zL));
+  double G = 0.0;
+  double vi = 0.0;
+  int n = 1;
+  for (n = 1; n <= 12; n++)
+    {
+      if (rxz > 0) vi += 8.0*PI*qL*q*n*cos(twoPI*n*(y-s*Ly)*uy)*bessk1(twoPI*n*rxz*uy)*uy/(1.0*Ns);
+    }
+  G = vi + 2.0*qL*q/(rxz*Ns);
+  return G/(A*sin(twoPI*s*Ly/lambda)*sqrt(1+(z-zL)*(z-zL)/(dx*dx)));
+}
+double xforce_on_seg_due_to_part(double s,double q,double x,double y,double z,double qL,double xL,double zL,double ep, double A,double lambda, int Ns,int M) {
+  double xs = xL + A*sin(twoPI*s*Ly/lambda);
+  double rxz = sqrt((x-xs)*(x-xs)+(z-zL)*(z-zL));
+  double vi = 0.0;
+  int n = 1;
+  for (n =1; n <= M; n++) {
+      if (rxz > 0) vi += 8.0*PI*qL*q*n*cos(twoPI*n*(y-s*Ly)*uy)*bessk1(twoPI*n*rxz*uy)*uy/(1.0*Ns);
+    }
+  double frxz = vi + 12*ep*pow(rxz,-13) + 2.0*qL*q/(rxz*Ns);
+  if (x-xs >= 0.0) {
+    return -1.0*frxz/sqrt(1+(z-zL)*(z-zL)/((x-xs)*(x-xs)));
+  }
+  else {
+    return frxz/sqrt(1+(z-zL)*(z-zL)/((x-xs)*(x-xs)));
+  } 
+}
+double growth_on_seg_due_to_part(double s, double q, double x, double y, double z, double qL, double xL, double zL, double ep, double A, double lambda, int Ns, int M) {
+  return (xforce_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M)-xforce_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,0.0,lambda,Ns,M))/(A*sin(twoPI*s*Ly/lambda));
 }
