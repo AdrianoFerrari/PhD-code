@@ -1,5 +1,7 @@
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <mpi.h>
 #include "bessels.h"
 
 #define PI 3.14159265358979323846

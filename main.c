@@ -1,24 +1,26 @@
 #include "tests.c"
 
-int main() {
+int main(int argc, char **argv) {
   //run_tests(); 
 
   //import simulation parameters
   int N = 16;
+  int s; int T = 1000000;
   double maxR = 16.0; double maxY = 24.0;
   double ci_charge = 2.0;
   double kbT = 1.0;
   double ep = 1.0;
   double qL = -10; double R = 1.2; double A = 0.1; double lambda = 6.0;
-  double De;
-  //declare variables
-  int i;
+
+  //declare variables other variables
+  int i;  double De; int ranN;
   double q[N];
   double x[N][3];
   double xn[N][3];
   
   //initialize MPI
   int node; int size; ULL idum;
+  
   MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD,&size);
   MPI_Comm_rank(MPI_COMM_WORLD,&node);
@@ -42,12 +44,12 @@ int main() {
 
   //MC loop
   for(s=0; s < T/size;s++) {
-    ranN =(int)floor(N*UNI);
+    ranN = 3;//(int)floor(N*UNI);
     xn[ranN][0] = ran_xz(maxR);
     xn[ranN][1] = ran_y(maxY);
     xn[ranN][2] = ran_xz(maxR);
     
-    if(go_ahead(energy_difference(x,xn,q,N,ranN,ep,qL,-0.5*R,0.0,A,0.5*R,0.0,A,lambda))) {
+    if(go_ahead(energy_difference(x,xn,q,N,ranN,ep,qL,-0.5*R,0.0,A,0.5*R,0.0,A,lambda), kbT)) {
       x[ranN][0] = xn[ranN][0];
       x[ranN][1] = xn[ranN][1];
       x[ranN][2] = xn[ranN][2];
@@ -59,7 +61,7 @@ int main() {
     }
     
     if(s % 10000 == 0) {
-      fprintf(fp,"%d",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7));
+      fprintf(fp,"%f\n",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7));
     }
   }
 
@@ -67,6 +69,5 @@ int main() {
   fclose(fp);
   
   //close MPI
-  MPI_Reduce(&myenergy,&energy,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   MPI_Finalize();
 }
