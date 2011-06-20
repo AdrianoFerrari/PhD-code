@@ -112,6 +112,20 @@ double xforce_on_seg_due_to_part(double s,double q,double x,double y,double z,do
     return frxz/sqrt(1+(z-zL)*(z-zL)/((x-xs)*(x-xs)));
   } 
 }
+double xforce_on_seg_due_to_line(double s, double qL, double xL1, double zL1, double xL2, double zL2, double A, double lambda, int Ns) {
+  double xs = xL1 + A*sin(twoPI*s*Ly/lambda);
+  double rxz = sqrt((xL2-xs)*(xL2-xs)+(zL2-zL1)*(zL2-zL1));
+  double frxz = 2*qL*qL*Ly/(rxz*Ns);
+  if (xL2-xs >= 0.0) {
+    return -1.0*frxz/sqrt(1+(zL2-zL1)*(zL2-zL1)/((xL2-xs)*(xL2-xs)));
+  }
+  else {
+    return frxz/sqrt(1+(zL2-zL1)*(zL2-zL1)/((xL2-xs)*(xL2-xs)));
+  }
+}
 double growth_on_seg_due_to_part(double s, double q, double x, double y, double z, double qL, double xL, double zL, double ep, double A, double lambda, int Ns, int M) {
   return (xforce_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M)-xforce_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,0.0,lambda,Ns,M))/(A*sin(twoPI*s*Ly/lambda));
+}
+double growth_on_seg_due_to_line(double s, double qL, double xL1, double zL1, double xL2, double zL2, double A, double lambda, int Ns) {
+  return (xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns)-xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,0.0,lambda,Ns))/(A*sin(twoPI*s*Ly/lambda));
 }
