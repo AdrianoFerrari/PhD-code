@@ -133,3 +133,5 @@ double growth_rate(double q[], double x[][3], int size,double qL, double xL1, do
   }
   return sum/(1.0*Ns);
 }
+double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }
+double ran_y(double maxY) { return maxY*UNI; }
