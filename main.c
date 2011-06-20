@@ -129,3 +129,12 @@ double growth_on_seg_due_to_part(double s, double q, double x, double y, double 
 double growth_on_seg_due_to_line(double s, double qL, double xL1, double zL1, double xL2, double zL2, double A, double lambda, int Ns) {
   return (xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns)-xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,0.0,lambda,Ns))/(A*sin(twoPI*s*Ly/lambda));
 }
+double growth_on_seg(double s, double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
+  double gLine = growth_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
+  double gParts = 0.0;
+  int i = 0;
+  for(i = 0; i < size; i++) {
+    gParts += growth_on_seg_due_to_part(s,q[i],x[i][0],x[i][1],x[i][2],qL,xL1,zL1,ep,A,lambda,Ns,M);
+  }
+  return gParts + gLine;
+}
