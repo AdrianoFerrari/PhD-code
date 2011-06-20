@@ -138,3 +138,11 @@ double growth_on_seg(double s, double q[], double x[][3], int size,double qL, do
   }
   return gParts + gLine;
 }
+double growth_rate(double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
+  double sum = 0.0;
+  int i = 1;
+  for(i = 1; i <=Ns; i++) {
+    sum += growth_on_seg(i*Ly/(1.0*Ns),q,x,size,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
+  }
+  return sum/(1.0*Ns);
+}

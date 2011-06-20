@@ -416,6 +416,30 @@ static void test_growth_on_seg_2() {
 	 val >= expected*1.005
 	 );
 }
+static void test_growth_rate_1() {
+  double q[6] = {0.161532, 0.395393, 0.59779, 0.0170533, 0.536349, 0.7383};
+  double x[6][3] = {{15.8407, 17.7708, -20.4505}, {19.3111, 6.65337, -28.5583}, {19.5652,12.5071, 9.00004}, {-3.57101, 19.715, 5.84241}, {22.9855,16.549, -14.7609}, {-19.6095, 7.88197, 7.93345}};
+  double ep = 2.107; double qL = -16.0; double xL1 = 1.234; double zL1 = 0.0; double A = 0.1; double lambda = 3.5;
+  double xL2 = -1.234; double zL2 = 0.0; int Ns = 23; int M = 7;
+  double val = growth_rate(q,x,6,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
+  double expected = -87.5393;
+  assert(val <= expected*0.995
+	 &&
+	 val >= expected*1.005
+	 );
+}
+static void test_growth_rate_2() {
+  double q[6] = {0.161532, 0.395393, 0.59779, 0.0170533, 0.536349, 0.7383};
+  double x[6][3] = {{1.717, -0.619, 1.483}, {0.28, -0.341, -2.115}, {0.908, -4.512, 2.473}, {-0.913, 3.142, 3.084}, {1.731, -4.153, -0.95}, {2.642, 3.118, -1.636}};
+  double ep = 2.107; double qL = -16.0; double xL1 = 25; double zL1 = 0.0; double A = 0.1; double lambda = 3.5;
+  double xL2 = -25; double zL2 = 0.0; int Ns = 23; int M = 7;
+  double val = growth_rate(q,x,6,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
+  double expected = -0.207572;
+  assert(val <= expected*0.995
+	 &&
+	 val >= expected*1.005
+	 );
+}
 
 int main() {
   //test_dummy_function();
@@ -459,4 +483,6 @@ int main() {
   test_growth_on_seg_due_to_line_3();
   test_growth_on_seg_1();
   test_growth_on_seg_2();
+  test_growth_rate_1();
+  test_growth_rate_2();
 }
