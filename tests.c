@@ -473,9 +473,3 @@ static void run_tests() {
   test_growth_rate_1();
   test_growth_rate_2();
 }
-
-int main() {
-  //run_tests();
-
-  
-}
