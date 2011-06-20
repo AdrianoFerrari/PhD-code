@@ -210,18 +210,6 @@ static void test_go_ahead_4() {
 	 sum/100000 <= expected*1.05
 	 );
 }
-static void test_line_growth_at_pt_from_particle_1() {
-  double s = 1.2; int Ns = 14;
-  double q = 1.0;
-  double x = 1.234; double y = 1.234; double z = -1.234;
-  double qL = -1.2; double xL = -0.5; double zL = 0.0; double A = 1.2; double lambda = 3.5;
-  double val = line_growth_at_pt_from_particle(1.2, 1, 1.234, 1.234, -1.234, -1.2, -0.5, 0.0, 1.2, 3.5, 14);
-  double expected = -0.014285;
-  assert(val <= expected*0.995
-	 &&
-	 val >= expected*1.005
-	 );
-}
 static void  test_xforce_on_seg_due_to_part_1() {
   double s = 0.22;
   double q = 1.0; double x = 2.1; double y = 1.5; double z = 0.0;
@@ -440,49 +428,54 @@ static void test_growth_rate_2() {
 	 val >= expected*1.005
 	 );
 }
-
-int main() {
-  //test_dummy_function();
-  //test_lekner_potential_1();
-  //test_lekner_potential_2();
-  //test_repulsive_potential_1();
-  //test_repulsive_potential_2();  
-  //test_repulsive_potential_3();
-  //test_repulsive_potential_4();
-  //test_line_potential_1();
-  //test_line_potential_2();
-  //test_line_repulsive_potential_1();
-  //test_line_repulsive_potential_2();
-  //test_kiss_rng();
-  //test_kiss_rng_seed();
-  //test_kiss_uni();
-  //test_pair_potential_energy_1();  
-  //test_pair_potential_energy_2();
-  //test_particle_total_pair_potential_1();
-  //test_particle_total_potential_1();  
-  //test_particle_total_potential_2();
-  //test_energy_difference_1();
-  //test_energy_difference_2();
-  //test_go_ahead_1();
-  //test_go_ahead_2();
-  //test_go_ahead_3();
-  //test_go_ahead_4();
-  //test_xforce_on_seg_due_to_part_1();
-  //test_xforce_on_seg_due_to_part_2();
-  //test_xforce_on_seg_due_to_part_3();
-  //test_xforce_on_seg_due_to_part_4();
-  //test_xforce_on_seg_due_to_line_1();
-  //test_xforce_on_seg_due_to_line_2();
-  //test_xforce_on_seg_due_to_line_3();
-  //test_growth_on_seg_due_to_part_1();
-  //test_growth_on_seg_due_to_part_2();
-  //test_growth_on_seg_due_to_part_3();
-  //test_growth_on_seg_due_to_part_4();
-  //test_growth_on_seg_due_to_line_1();
+static void run_tests() {
+  test_dummy_function();
+  test_lekner_potential_1();
+  test_lekner_potential_2();
+  test_repulsive_potential_1();
+  test_repulsive_potential_2();  
+  test_repulsive_potential_3();
+  test_repulsive_potential_4();
+  test_line_potential_1();
+  test_line_potential_2();
+  test_line_repulsive_potential_1();
+  test_line_repulsive_potential_2();
+  test_kiss_rng();
+  test_kiss_rng_seed();
+  test_kiss_uni();
+  test_pair_potential_energy_1();  
+  test_pair_potential_energy_2();
+  test_particle_total_pair_potential_1();
+  test_particle_total_potential_1();  
+  test_particle_total_potential_2();
+  test_energy_difference_1();
+  test_energy_difference_2();
+  test_go_ahead_1();
+  test_go_ahead_2();
+  test_go_ahead_3();
+  test_go_ahead_4();
+  test_xforce_on_seg_due_to_part_1();
+  test_xforce_on_seg_due_to_part_2();
+  test_xforce_on_seg_due_to_part_3();
+  test_xforce_on_seg_due_to_part_4();
+  test_xforce_on_seg_due_to_line_1();
+  test_xforce_on_seg_due_to_line_2();
+  test_xforce_on_seg_due_to_line_3();
+  test_growth_on_seg_due_to_part_1();
+  test_growth_on_seg_due_to_part_2();
+  test_growth_on_seg_due_to_part_3();
+  test_growth_on_seg_due_to_part_4();
+  test_growth_on_seg_due_to_line_1();
   test_growth_on_seg_due_to_line_2();
   test_growth_on_seg_due_to_line_3();
   test_growth_on_seg_1();
   test_growth_on_seg_2();
   test_growth_rate_1();
   test_growth_rate_2();
+}
+
+int main() {
+  //run_tests();
+
+  
 }

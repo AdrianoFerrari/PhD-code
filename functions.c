@@ -83,19 +83,6 @@ bool go_ahead(double De, double kbT) {
     }
   else return false;
 }
-double line_growth_at_pt_from_particle(double s, double q, double x, double y, double z, double qL, double xL, double zL, double A, double lambda, int Ns) {
-  double dx = (x - xL - A*sin(twoPI*s*Ly/lambda));
-  double rxz = sqrt(dx*dx  + (z - zL) * (z - zL));
-  double G = 0.0;
-  double vi = 0.0;
-  int n = 1;
-  for (n = 1; n <= 12; n++)
-    {
-      if (rxz > 0) vi += 8.0*PI*qL*q*n*cos(twoPI*n*(y-s*Ly)*uy)*bessk1(twoPI*n*rxz*uy)*uy/(1.0*Ns);
-    }
-  G = vi + 2.0*qL*q/(rxz*Ns);
-  return G/(A*sin(twoPI*s*Ly/lambda)*sqrt(1+(z-zL)*(z-zL)/(dx*dx)));
-}
 double xforce_on_seg_due_to_part(double s,double q,double x,double y,double z,double qL,double xL,double zL,double ep, double A,double lambda, int Ns,int M) {
   double xs = xL + A*sin(twoPI*s*Ly/lambda);
   double rxz = sqrt((x-xs)*(x-xs)+(z-zL)*(z-zL));
