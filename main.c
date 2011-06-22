@@ -41,6 +41,10 @@ int main(int argc, char **argv) {
   char fullfilename [32];
   sprintf(fullfilename, "%s.%d",filename,node);
   fp=fopen(fullfilename,"w");
+  FILE *pos;
+  char posfilename [32];
+  sprintf(posfilename, "%s.%d.xyz",filename,node);
+  pos=fopen(posfilename,"w");
 
   //initialize particles
   for(i=0; i<N;i++) {
@@ -75,6 +79,12 @@ int main(int argc, char **argv) {
     
     if(s % outputrate == 0) {
       fprintf(fp,"%f, %f\n",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7),kbt);
+      
+      fprintf(pos,"%d\n",N);
+      fprintf(pos,"somestuff\n");
+      for(i=0;i<N;i++) {
+	fprintf(pos,"0 %f %f %f\n",x[i][0],x[i][1],x[i][2]);
+      }
     }
   }
 
