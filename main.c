@@ -4,13 +4,22 @@ int main(int argc, char **argv) {
   //run_tests(); 
 
   //import simulation parameters
-  int N = 16;
-  int s; int T = 1000000;
+  int N = 64;
+  int s; 
   double maxR = 16.0; double maxY = 24.0;
   double ci_charge = 2.0;
-  double kbT = 1.0;
+  double kbt;
   double ep = 1.0;
-  double qL = -10; double R = 1.2; double A = 0.1; double lambda = 6.0;
+  double qL = -5.333333;
+  char filename[32];
+  int T = atoi(argv[1]);
+  double kbt0 = atof(argv[2]);
+  double kbtf = atof(argv[3]);
+  double R = atof(argv[4]);
+  double A = atof(argv[5]);
+  double lambda = atof(argv[6]);
+  sprintf(filename,"%s",argv[7]);
+  int outputrate = atoi(argv[8]);
 
   //declare variables other variables
   int i;  double De; int ranN;
@@ -28,8 +37,10 @@ int main(int argc, char **argv) {
   settable(idum, 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
 
   //open required output files
-  FILE *fp;   
-  fp=fopen("testout1","w");
+  FILE *fp;
+  char fullfilename [32];
+  sprintf(fullfilename, "%s.%d",filename,node);
+  fp=fopen(fullfilename,"w");
 
   //initialize particles
   for(i=0; i<N;i++) {
@@ -49,7 +60,9 @@ int main(int argc, char **argv) {
     xn[ranN][1] = ran_y(maxY);
     xn[ranN][2] = ran_xz(maxR);
     
-    if(go_ahead(energy_difference(x,xn,q,N,ranN,ep,qL,-0.5*R,0.0,A,0.5*R,0.0,A,lambda), kbT)) {
+    kbt = (kbtf - kbt0)*s/(T/size-1) + kbt0;
+    
+    if(go_ahead(energy_difference(x,xn,q,N,ranN,ep,qL,-0.5*R,0.0,A,0.5*R,0.0,A,lambda), kbtf)) {
       x[ranN][0] = xn[ranN][0];
       x[ranN][1] = xn[ranN][1];
       x[ranN][2] = xn[ranN][2];
@@ -60,8 +73,8 @@ int main(int argc, char **argv) {
       xn[ranN][2] = x[ranN][2];
     }
     
-    if(s % 10000 == 0) {
-      fprintf(fp,"%f\n",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7));
+    if(s % outputrate == 0) {
+      fprintf(fp,"%f, %f\n",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7),kbt);
     }
   }
 
