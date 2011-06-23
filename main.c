@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
 
   //MC loop
   for(s=0; s < T/size; s++) {
-    ranN = (int)floor(rand()/RAND_MAX);
+    ranN = ran_particle(N);
     xn[ranN][0] = ran_xz(maxR);
     xn[ranN][1] = ran_y(maxY);
     xn[ranN][2] = ran_xz(maxR);
