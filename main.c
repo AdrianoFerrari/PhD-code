@@ -19,7 +19,9 @@ int main(int argc, char **argv) {
   double A = atof(argv[5]);
   double lambda = atof(argv[6]);
   sprintf(filename,"%s",argv[7]);
-  int outputrate = atoi(argv[8]);
+  int growthOut = atoi(argv[8]);
+  int forceOut = atoi(argv[9]);
+  int posOut = atoi(argv[10]);
 
   //declare variables other variables
   int i;  double De; int ranN;
@@ -37,14 +39,11 @@ int main(int argc, char **argv) {
   settable(idum, 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
 
   //open required output files
-  FILE *fp;
-  char fullfilename [32];
-  sprintf(fullfilename, "%s.%d",filename,node);
-  fp=fopen(fullfilename,"w");
-  FILE *pos;
-  char posfilename [32];
-  sprintf(posfilename, "%s.%d.xyz",filename,node);
-  pos=fopen(posfilename,"w");
+  char fname [32];
+  FILE *fp; FILE *force; FILE *pos;
+  if (growthOut != 0) { sprintf(fname, "%s.%d.growth",filename,node); fp=fopen(fname,"w"); }
+  if (forceOut != 0) { sprintf(fname, "%s.%d.force",filename,node); force=fopen(fname,"w"); }
+  if (posOut != 0) { sprintf(fname, "%s.%d.xyz",filename,node); pos=fopen(fname,"w"); }
 
   //initialize particles
   for(i=0; i<N;i++) {
@@ -77,9 +76,13 @@ int main(int argc, char **argv) {
       xn[ranN][2] = x[ranN][2];
     }
     
-    if(s % outputrate == 0) {
-      fprintf(fp,"%f, %f\n",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7),kbt);
-      
+    if(growthOut != 0 && s % growthOut == 0) {
+      fprintf(fp,"%f\n",growth_rate(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7));
+    }
+    if(forceOut != 0 && s % forceOut == 0) {
+      fprintf(force,"%f\n", xforce(q,x,N,qL,-0.5*R,0.0,0.5*R,0.0,ep,A,lambda,23,7));
+    }
+    if(posOut != 0 && s % posOut == 0) {
       fprintf(pos,"%d\n",N);
       fprintf(pos,"somestuff\n");
       for(i=0;i<N;i++) {
@@ -89,7 +92,9 @@ int main(int argc, char **argv) {
   }
 
   //close files
-  fclose(fp);
+  if(growthOut != 0) { fclose(fp); }
+  if(forceOut != 0) { fclose(force); }
+  if(posOut != 0) { fclose(pos); }
   
   //close MPI
   MPI_Finalize();

@@ -110,20 +110,25 @@ double xforce_on_seg_due_to_line(double s, double qL, double xL1, double zL1, do
     return frxz/sqrt(1+(zL2-zL1)*(zL2-zL1)/((xL2-xs)*(xL2-xs)));
   }
 }
-double growth_on_seg_due_to_part(double s, double q, double x, double y, double z, double qL, double xL, double zL, double ep, double A, double lambda, int Ns, int M) {
-  return (xforce_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M)-xforce_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,0.0,lambda,Ns,M))/(A*sin(twoPI*s*Ly/lambda));
-}
-double growth_on_seg_due_to_line(double s, double qL, double xL1, double zL1, double xL2, double zL2, double A, double lambda, int Ns) {
-  return (xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns)-xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,0.0,lambda,Ns))/(A*sin(twoPI*s*Ly/lambda));
-}
-double growth_on_seg(double s, double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
-  double gLine = growth_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
-  double gParts = 0.0;
+double xforce_on_seg(double s, double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
+  double fLine = xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
+  double fParts = 0.0;
   int i = 0;
   for(i = 0; i < size; i++) {
-    gParts += growth_on_seg_due_to_part(s,q[i],x[i][0],x[i][1],x[i][2],qL,xL1,zL1,ep,A,lambda,Ns,M);
+    fParts += xforce_on_seg_due_to_part(s,q[i],x[i][0],x[i][1],x[i][2],qL,xL1,zL1,ep,A,lambda,Ns,M);
   }
-  return gParts + gLine;
+  return fLine + fParts;
+}
+double xforce(double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
+  double sum = 0.0;
+  int i = 1;
+  for(i = 1;i <= Ns; i++) {
+    sum += xforce_on_seg(i*Ly/(1.0*Ns),q,x,size,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
+  }
+  return sum;
+}
+double growth_on_seg(double s, double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
+  return (xforce_on_seg(s,q,x,size,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M)-xforce_on_seg(s,q,x,size,qL,xL1,zL1,xL2,zL2,ep,0.0,lambda,Ns,M))/(A*sin(twoPI*s*Ly/lambda));
 }
 double growth_rate(double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
   double sum = 0.0;

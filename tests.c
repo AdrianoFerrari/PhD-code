@@ -294,88 +294,17 @@ static void  test_xforce_on_seg_due_to_line_3() {
 	 val >= expected*1.005
 	 );
 }
-static void test_growth_on_seg_due_to_part_1() {
-  double s = 0.22;
-  double q = 1.0; double x = 2.1; double y = 1.5; double z = 0.0;
-  double qL = -16.0; double xL = -1.0; double zL = 0.0;
-  double ep = 1.2; double A = 0.1; double lambda = 3.5; int Ns = 23; int M = 7;
-  double val = growth_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M);
-  double expected = 0.0336975;
+static void test_xforce_on_seg_1() {
+  double s = 0.43;
+  double q[6] = {0.161532, 0.395393, 0.59779, 0.0170533, 0.536349, 0.7383};
+  double x[6][3] = {{15.8407, 17.7708, -20.4505}, {19.3111, 6.65337, -28.5583}, {19.5652,12.5071, 9.00004}, {-3.57101, 19.715, 5.84241}, {22.9855, 16.549, -14.7609}, {-19.6095, 7.88197, 7.93345}};
+  double ep = 2.107; double qL = -16.0; double xL1 = 1.234; double zL1 = 0.0; double A = 0.1; double lambda = 3.5;
+  double xL2 = -1.234; double zL2 = 0.0; int Ns = 23; int M = 7;
+  double val = xforce_on_seg(s,q,x,6,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
+  double expected = 219.327;
   assert(val >= expected*0.995
 	 &&
 	 val <= expected*1.005
-	 );  
-}
-static void test_growth_on_seg_due_to_part_2() {
-  double s = 0.22;
-  double q = 1.0; double x = -0.9; double y = 1.5; double z = 0.0;
-  double qL = -16.0; double xL = -1.0; double zL = 0.0;
-  double ep = 1.2; double A = 0.1; double lambda = 3.5; int Ns = 23; int M = 7;
-  double val = growth_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M);
-  double expected = -1.32202e16;
-  assert(val <= expected*0.995
-	 &&
-	 val >= expected*1.005
-	 );  
-}
-static void test_growth_on_seg_due_to_part_3() {
-  double s = 0.22;
-  double q = 1.0; double x = -1.1; double y = 1.5; double z = 0.0;
-  double qL = -16.0; double xL = -1.0; double zL = 0.0;
-  double ep = 1.2; double A = 0.1; double lambda = 3.5; int Ns = 23; int M = 7;
-  double val = growth_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M);
-  double expected = -2.81701e16;
-  assert(val <= expected*0.995
-	 &&
-	 val >= expected*1.005
-	 );  
-}
-static void test_growth_on_seg_due_to_part_4() {
-  double s = 0.22;
-  double q = 1.0; double x = -2.9; double y = 1.5; double z = 0.0;
-  double qL = -16.0; double xL = -1.0; double zL = 0.0;
-  double ep = 1.2; double A = 0.1; double lambda = 3.5; int Ns = 23; int M = 7;
-  double val = growth_on_seg_due_to_part(s,q,x,y,z,qL,xL,zL,ep,A,lambda,Ns,M);
-  double expected = 0.0435877;
-  assert(val >= expected*0.995
-	 &&
-	 val <= expected*1.005
-	 );  
-}
-static void test_growth_on_seg_due_to_line_1() {
-  double s = 0.63;
-  double qL = -16.0; double xL1 = 1.5; double zL1 = 0.0;
-  double xL2 = -1.5; double zL2 = 0.0;
-  double A = 0.1; double lambda = 3.5; int Ns = 23;
-  double val = growth_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
-  double expected = -57.6243;
-  assert(val <= expected*0.995
-	 &&
-	 val >= expected*1.005
-	 );
-}
-static void test_growth_on_seg_due_to_line_2() {
-  double s = 0.63;
-  double qL = -16.0; double xL1 = 0.9; double zL1 = 0.0;
-  double xL2 = -0.9; double zL2 = 0.0;
-  double A = 0.1; double lambda = 3.5; int Ns = 23;
-  double val = growth_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
-  double expected = -157.003;
-  assert(val <= expected*0.995
-	 &&
-	 val >= expected*1.005
-	 );
-}
-static void test_growth_on_seg_due_to_line_3() {
-  double s = 0.63;
-  double qL = -16.0; double xL1 = -3.9; double zL1 = 0.0;
-  double xL2 = 3.9; double zL2 = 0.0;
-  double A = 0.1; double lambda = 3.5; int Ns = 23;
-  double val = growth_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
-  double expected = -8.88447;
-  assert(val <= expected*0.995
-	 &&
-	 val >= expected*1.005
 	 );
 }
 static void test_growth_on_seg_1() {
@@ -428,6 +357,9 @@ static void test_growth_rate_2() {
 	 val >= expected*1.005
 	 );
 }
+static void test_xforce_1() {
+  
+}
 static void run_tests() {
   test_dummy_function();
   test_lekner_potential_1();
@@ -461,15 +393,10 @@ static void run_tests() {
   test_xforce_on_seg_due_to_line_1();
   test_xforce_on_seg_due_to_line_2();
   test_xforce_on_seg_due_to_line_3();
-  test_growth_on_seg_due_to_part_1();
-  test_growth_on_seg_due_to_part_2();
-  test_growth_on_seg_due_to_part_3();
-  test_growth_on_seg_due_to_part_4();
-  test_growth_on_seg_due_to_line_1();
-  test_growth_on_seg_due_to_line_2();
-  test_growth_on_seg_due_to_line_3();
+  test_xforce_on_seg_1();
   test_growth_on_seg_1();
   test_growth_on_seg_2();
   test_growth_rate_1();
   test_growth_rate_2();
+  test_xforce_1();
 }
