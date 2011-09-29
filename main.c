@@ -4,24 +4,24 @@ int main(int argc, char **argv) {
   //run_tests(); 
 
   //import simulation parameters
-  int N = 64;
+  int N = atoi(argv[1]);
   int s; 
   double maxR = 16.0; double maxY = 24.0;
-  double ci_charge = 2.0;
+  double ci_charge = atof(argv[2]);
   double kbt;
-  double ep = 1.0;
-  double qL = -5.333333;
+  double ep = atof(argv[3]);
+  double qL = -0.5*N*ci_charge;
   char filename[32];
-  int T = atoi(argv[1]);
-  double kbt0 = atof(argv[2]);
-  double kbtf = atof(argv[3]);
-  double R = atof(argv[4]);
-  double A = atof(argv[5]);
-  double lambda = atof(argv[6]);
-  sprintf(filename,"%s",argv[7]);
-  int growthOut = atoi(argv[8]);
-  int forceOut = atoi(argv[9]);
-  int posOut = atoi(argv[10]);
+  int T = atoi(argv[4]);
+  double kbt0 = atof(argv[5]);
+  double kbtf = atof(argv[6]);
+  double R = atof(argv[7]);
+  double A = atof(argv[8]);
+  double lambda = atof(argv[9]);
+  sprintf(filename,"%s",argv[10]);
+  int growthOut = atoi(argv[11]);
+  int forceOut = atoi(argv[12]);
+  int posOut = atoi(argv[13]);
 
   //declare variables other variables
   int i;  double De; int ranN;
