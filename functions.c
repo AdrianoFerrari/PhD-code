@@ -42,9 +42,25 @@ double spring_u(double h,double Lmax,double x0,double y0,double z0,double x1,dou
     return -(0.5*h*Lmax*Lmax)*log(1-(L/Lmax)*(L/Lmax));
   }
 }
-bool on_chain(int i,int N,int Nl){
+bool on_chain(int i,int N,int Nl) {
   if (i < N) { return false; }
   else {return true; }
+}
+bool is_endpoint(int i,int N,int Nl) {
+  if (i == N || i == N+Nl-1 || i == N+2*Nl-1) {
+    return true;
+  }
+  else {return false;}
+}
+bool linked(int i, int j, int N, int Nl) {
+  //TODO: implement
+}
+double total_u(int i,double q0,double x0,double y0,double z0,double j,double q1,double x1,double y1,double z1,double ep,double h,double Lmax,int N,int Nl) {
+  double total = 0.0;
+  total += lekner_u(q0,x0,y0,z0,q1,x1,y1,z1) + repulsive_u(ep,x0,y0,z0,x1,y1,z1);
+  
+  if(linked(//TODO: continue translating from dynamic.py
+  
 }
 double pair_potential_energy(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1, double epsilon) {
   return repulsive_potential(x0,y0,z0,x1,y1,z1,epsilon) + lekner_potential(q0,x0,y0,z0,q1,x1,y1,z1);
