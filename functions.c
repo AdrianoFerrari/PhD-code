@@ -82,6 +82,8 @@ double delta_u(double x[][3], double xn[][3], double q[], int size, int i, doubl
   double delta_e = 0.0;
   double new_e, old_e;
   int i;
+  
+  //OpenMP loop parallelization occurs here.
   for (i = 0; i < N+2*Nl; i++)
     if(i!=n) {
       new_e = total_u(n, q[n], xn[n][0], xn[n][1], xn[n][2], \
@@ -90,6 +92,7 @@ double delta_u(double x[][3], double xn[][3], double q[], int size, int i, doubl
 		      i, q[i],  x[i][0],  x[i][1],  x[i][2], ep, h, Lmax, N, Nl);
       delta_e += new_e - old_e;
     }
+  
   return delta_e;
 }
 double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }

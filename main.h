@@ -24,6 +24,7 @@ void settable(ULL i1, ULL i2, ULL i3, ULL i4)
   x = i1; c = i2; y = i3; z = i4;
 }
 
-const double uy = 0.041666666666;
+const double maxR = 16.0;
 const double Ly = 24.0;
+const double uy = 0.041666666666;
 const int M = 7;//Lekner terms
