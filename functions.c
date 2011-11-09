@@ -53,102 +53,44 @@ bool is_endpoint(int i,int N,int Nl) {
   else {return false;}
 }
 bool linked(int i, int j, int N, int Nl) {
-  //TODO: implement
+  if (i>j) {
+    int t;
+    t = i;
+    i = j;
+    j = t;
+  }
+  if (!on_chain(i,N,Nl) || !on_chain(j,N,Nl)) {
+    return false;
+  }
+  else if ((i==N && j==N+Nl-1)||(i==N+Nl && j == N+2*Nl-1)) {
+    return true;
+  }
+  else if (abs(i-j) != 1) { return false; }
+  else { return true; }
 }
 double total_u(int i,double q0,double x0,double y0,double z0,double j,double q1,double x1,double y1,double z1,double ep,double h,double Lmax,int N,int Nl) {
   double total = 0.0;
   total += lekner_u(q0,x0,y0,z0,q1,x1,y1,z1) + repulsive_u(ep,x0,y0,z0,x1,y1,z1);
   
-  if(linked(//TODO: continue translating from dynamic.py
-  
-}
-double pair_potential_energy(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1, double epsilon) {
-  return repulsive_potential(x0,y0,z0,x1,y1,z1,epsilon) + lekner_potential(q0,x0,y0,z0,q1,x1,y1,z1);
-}
-double particle_total_pair_potential(double x[][3], double q[], int size, double eps, int i) {
-  int j;
-  double pe = 0.0;
-  double q0 = q[i];
-  double x0 = x[i][0];  
-  double y0 = x[i][1];  
-  double z0 = x[i][2];
-
-  for(j=0;j<size;j++) {
-    if(j != i) {
-      pe += pair_potential_energy(q0,x0,y0,z0,q[j],x[j][0],x[j][1],x[j][2],eps);
-    }
+  if(linked(i,j,N,Nl)) {
+    total += spring_u(h,Lmax,x0,y0,z0,x1,y1,z1);
   }
   
-  return pe;
+  return total;
 }
-double particle_total_potential(double x[][3], double q[], int size, int i, double eps, double qL, double xL1, double zL1, double A1, double xL2, double zL2, double A2, double lambda) {
-  return particle_total_pair_potential(x,q,size,eps,i)+total_line_potential(x,q,eps,i,qL,xL1,zL1,A1,lambda)+total_line_potential(x,q,eps,i,qL,xL2,zL2,A2,lambda);
-}
-double energy_difference(double x[][3], double xn[][3], double q[], int size, int i, double eps, double qL, double xL1, double zL1, double A1, double xL2, double zL2, double A2, double lambda) {
-  double energy = particle_total_potential(x,q,size,i,eps,qL,xL1,zL1,A1,xL2,zL2,A2,lambda);
-  double new_energy = particle_total_potential(xn,q,size,i,eps,qL,xL1,zL1,A1,xL2,zL2,A2,lambda);
-  return new_energy - energy;
-}
-bool go_ahead(double De, double kbT) {
-  if(UNI < fmin(1.0,exp(-De/kbT))) {
-      return true;
+double delta_u(double x[][3], double xn[][3], double q[], int size, int i, double eps, double qL, double xL1, double zL1, double A1, double xL2, double zL2, double A2, double lambda) {
+  double delta_e = 0.0;
+  double new_e, old_e;
+  int i;
+  for (i = 0; i < N+2*Nl; i++)
+    if(i!=n) {
+      new_e = total_u(n, q[n], xn[n][0], xn[n][1], xn[n][2], \
+		      i, q[i], xn[i][0], xn[i][1], xn[i][2], ep, h, Lmax, N, Nl);
+      old_e = total_u(n, q[n],  x[n][0],  x[n][1],  x[n][2], \
+		      i, q[i],  x[i][0],  x[i][1],  x[i][2], ep, h, Lmax, N, Nl);
+      delta_e += new_e - old_e;
     }
-  else return false;
-}
-double xforce_on_seg_due_to_part(double s,double q,double x,double y,double z,double qL,double xL,double zL,double ep, double A,double lambda, int Ns,int M) {
-  double xs = xL + A*sin(twoPI*s*Ly/lambda);
-  double rxz = sqrt((x-xs)*(x-xs)+(z-zL)*(z-zL));
-  double vi = 0.0;
-  int n = 1;
-  for (n =1; n <= M; n++) {
-      if (rxz > 0) vi += 8.0*PI*qL*q*n*cos(twoPI*n*(y-s*Ly)*uy)*bessk1(twoPI*n*rxz*uy)*uy/(1.0*Ns);
-    }
-  double frxz = vi + 12*ep*pow(rxz,-13) + 2.0*qL*q/(rxz*Ns);
-  if (x-xs >= 0.0) {
-    return -1.0*frxz/sqrt(1+(z-zL)*(z-zL)/((x-xs)*(x-xs)));
-  }
-  else {
-    return frxz/sqrt(1+(z-zL)*(z-zL)/((x-xs)*(x-xs)));
-  } 
-}
-double xforce_on_seg_due_to_line(double s, double qL, double xL1, double zL1, double xL2, double zL2, double A, double lambda, int Ns) {
-  double xs = xL1 + A*sin(twoPI*s*Ly/lambda);
-  double rxz = sqrt((xL2-xs)*(xL2-xs)+(zL2-zL1)*(zL2-zL1));
-  double frxz = 2*qL*qL*Ly/(rxz*Ns);
-  if (xL2-xs >= 0.0) {
-    return -1.0*frxz/sqrt(1+(zL2-zL1)*(zL2-zL1)/((xL2-xs)*(xL2-xs)));
-  }
-  else {
-    return frxz/sqrt(1+(zL2-zL1)*(zL2-zL1)/((xL2-xs)*(xL2-xs)));
-  }
-}
-double xforce_on_seg(double s, double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
-  double fLine = xforce_on_seg_due_to_line(s,qL,xL1,zL1,xL2,zL2,A,lambda,Ns);
-  double fParts = 0.0;
-  int i = 0;
-  for(i = 0; i < size; i++) {
-    fParts += xforce_on_seg_due_to_part(s,q[i],x[i][0],x[i][1],x[i][2],qL,xL1,zL1,ep,A,lambda,Ns,M);
-  }
-  return fLine + fParts;
-}
-double xforce(double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
-  double sum = 0.0;
-  int i = 1;
-  for(i = 1;i <= Ns; i++) {
-    sum += xforce_on_seg(i*Ly/(1.0*Ns),q,x,size,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
-  }
-  return sum;
-}
-double growth_on_seg(double s, double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
-  return (xforce_on_seg(s,q,x,size,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M)-xforce_on_seg(s,q,x,size,qL,xL1,zL1,xL2,zL2,ep,0.0,lambda,Ns,M))/(A*sin(twoPI*s*Ly/lambda));
-}
-double growth_rate(double q[], double x[][3], int size,double qL, double xL1, double zL1, double xL2, double zL2, double ep, double A, double lambda, int Ns, int M) {
-  double sum = 0.0;
-  int i = 1;
-  for(i = 1; i <=Ns; i++) {
-    sum += growth_on_seg(i*Ly/(1.0*Ns),q,x,size,qL,xL1,zL1,xL2,zL2,ep,A,lambda,Ns,M);
-  }
-  return sum/(1.0*Ns);
+  return delta_e;
 }
 double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }
 double ran_y(double maxY) { return maxY*UNI; }
