@@ -1,7 +1,7 @@
 #include "main.h"
 
 double dist(y1,y0) {
-  if abs(y1-y0) > Ly/2.0 {
+  if (abs(y1-y0) > Ly/2.0) {
     return Ly/2.0 - abs(y1-y0);
   }
   else {
@@ -23,18 +23,18 @@ double lekner_u(double q0, double x0, double y0, double z0, double q1, double x1
 }
 double repulsive_u(double ep, double x0,double y0,double z0,double x1,double y1,double z1) {
   double r2 = (x1 - x0)*(x1 - x0) + dist(y1,y0)*dist(y1,y0) + (z1 - z0)*(z1 - z0);
-  if (r2 > 10.0*pow(epsilon,0.166666)) {
+  if (r2 > 10.0*pow(ep,0.166666)) {
     return 0.0;
   }
   else if (r2 == 0.0) {
     return 10e30;
   }
   else {
-    return epsilon/pow(r2,6);
+    return ep/pow(r2,6);
   }
 }
 double spring_u(double h,double Lmax,double x0,double y0,double z0,double x1,double y1,double z1) {
-  L = sqrt((x1 - x0)*(x1 - x0) + dist(y1,y0)*dist(y1,y0) + (z1 - z0)*(z1 - z0));
+  double L = sqrt((x1 - x0)*(x1 - x0) + dist(y1,y0)*dist(y1,y0) + (z1 - z0)*(z1 - z0));
   if (L >= Lmax) {
     return 1e10;
   }
@@ -78,7 +78,7 @@ double total_u(int i,double q0,double x0,double y0,double z0,double j,double q1,
   
   return total;
 }
-double delta_u(double x[][3], double xn[][3], double q[], int size, int i, double eps, double qL, double xL1, double zL1, double A1, double xL2, double zL2, double A2, double lambda) {
+double delta_u(double x[][3], double xn[][3], double q[], int n, double ep, double h, double Lmax, int N, int Nl) {
   double delta_e = 0.0;
   double new_e, old_e;
   int i;
@@ -98,3 +98,4 @@ double delta_u(double x[][3], double xn[][3], double q[], int size, int i, doubl
 double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }
 double ran_y(double maxY) { return maxY*UNI; }
 int ran_particle(int total) { return (int)floor(total*UNI); }
+double ran_u() { return UNI; }

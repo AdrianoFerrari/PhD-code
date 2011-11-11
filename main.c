@@ -1,8 +1,6 @@
-#include "tests.c"
+#include "functions.c"
 
 int main(int argc, char **argv) {
-  run_tests(); 
-  
   //variable init
   int s;
   double kbt;
@@ -10,7 +8,7 @@ int main(int argc, char **argv) {
   double acceptance_rate = 0.0;
   double De;
   char filename[32];
-  int i;  double De; int ranN;
+  int i; int ranN;
 
   //import simulation parameters
   int N             = atoi(argv[1]);
@@ -79,15 +77,15 @@ int main(int argc, char **argv) {
   for(s=0; s < T; s++) {
     kbt = kbt0;
     ranN = ran_particle(N);
-    dx = UNI; dy = UNI; dz = UNI;
+    dx = ran_u(); dy = ran_u(); dz = ran_u();
     step = on_chain(ranN, N, Nl) ? 0.2 : 0.6;
     xn[ranN][0] += step*dx;
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
     
-    De = delta_u(xn,x,ranN,ep,h,Lmax,N,Nl);
+    De = delta_u(xn,x,q,ranN,ep,h,Lmax,N,Nl);
     
-    if(De < 0 || exp(-De/kbt) > UNI) {
+    if(De < 0 || exp(-De/kbt) > ran_u()) {
       x[ranN][0] = xn[ranN][0];
       x[ranN][1] = xn[ranN][1];
       x[ranN][2] = xn[ranN][2];
