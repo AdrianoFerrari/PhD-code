@@ -48,37 +48,28 @@ int main(int argc, char **argv) {
   for(i=0; i<N+2*Nl;i++) {
     if(i<N) {
       q[i] = ci_charge;
-      x[i][0] = ran_xz(maxR);
-      x[i][1] = ran_y(Ly);
-      x[i][2] = ran_xz(maxR);
-      xn[i][0] = x[i][0];
-      xn[i][1] = x[i][1];
-      xn[i][2] = x[i][2];
+      x[i][0] = xn[i][0] = ran_xz(maxR);
+      x[i][1] = xn[i][1] = ran_y(Ly);
+      x[i][2] = xn[i][2] = ran_xz(maxR);
     }
     else if (i<N+Nl) {
       q[i] = qL;
-      x[i][0] = -0.5*R;
-      x[i][1] = (i-N)*Ly/Nl - 0.5*Ly;
-      x[i][2] = 0.0;
-      xn[i][0] = x[i][0];
-      xn[i][1] = x[i][1];
-      xn[i][2] = x[i][2];
+      x[i][0] = xn[i][0] = -0.5*R;
+      x[i][1] = xn[i][1] = (i-N)*Ly/Nl - 0.5*Ly;
+      x[i][2] = xn[i][2] = 0.0;
     }
     else {
       q[i] = qL;
-      x[i][0] = 0.5*R;
-      x[i][1] = (i-N-Nl)*Ly/Nl - 0.5*Ly;
-      x[i][2] = 0.0;
-      xn[i][0] = x[i][0];
-      xn[i][1] = x[i][1];
-      xn[i][2] = x[i][2];
+      x[i][0] = xn[i][0] = 0.5*R;
+      x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl - 0.5*Ly;
+      x[i][2] = xn[i][2] = 0.0;
     }
   }
 
   //MC loop
   for(s=0; s < T; s++) {
     kbt = kbt0;
-    ranN = ran_particle(N);
+    ranN = ran_particle(N+2*Nl);
     dx = ran_u(); dy = ran_u(); dz = ran_u();
     step = on_chain(ranN, N, Nl) ? 0.2 : 0.6;
     xn[ranN][0] += step*dx;
@@ -99,10 +90,10 @@ int main(int argc, char **argv) {
     }
     
     if(posOut != 0 && s % posOut == 0) {
-      fprintf(pos,"%d\n",N);
+      fprintf(pos,"%d\n",N+2*Nl);
       fprintf(pos,"rundata\n");
-      for(i=0;i<N;i++) {
-	fprintf(pos,"%d %f %f %f\n",on_chain(i,N,Nl)?8:1,x[i][0],x[i][1],x[i][2]);
+      for(i=0;i<N+2*Nl;i++) {
+	fprintf(pos,"%d %f %f %f\n",on_chain(i,N,Nl)?10:1,x[i][0],x[i][1],x[i][2]);
       }
     }
   }
