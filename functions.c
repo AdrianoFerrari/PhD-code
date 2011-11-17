@@ -1,14 +1,5 @@
 #include "main.h"
 
-double dist(y1,y0) {
-  if (abs(y1-y0) > Ly/2.0) {
-    return Ly/2.0 - abs(y1-y0);
-  }
-  else {
-    return abs(y1-y0);
-  }
-}
-
 double lekner_u(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1 ) {
   double rxz = sqrt((x1 - x0) * (x1 - x0) + (z1 - z0) * (z1 - z0));
   double y = dist(y1,y0);

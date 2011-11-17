@@ -1,6 +1,8 @@
 #include "functions.c"
 
 int main(int argc, char **argv) {
+  if(argc != 13) { printf("Usage: ./main N Nl qci ep h Lmax T kbt0 kbtf R file posOut\n"); return 0; }
+  
   //variable init
   int s;
   double kbt;
@@ -28,9 +30,9 @@ int main(int argc, char **argv) {
   double qL = -0.5*N*ci_charge;
 
   //init arrays
-  double q[N];
-  double x[N][3];
-  double xn[N][3];
+  double q[N+2*Nl];
+  double x[N+2*Nl][3];
+  double xn[N+2*Nl][3];
 
   //set random seed
   settable(1234567890987654321ULL, 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);

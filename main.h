@@ -6,6 +6,7 @@
 
 #define PI 3.14159265358979323846
 #define twoPI 6.283185307179586
+#define dist(y1,y2) (abs(y1-y0) > Ly/2.0 ? Ly/2.0 - abs(y1-y0) : abs(y1-y0))
 
 /* KISS RNG 
 https://groups.google.com/group/comp.lang.fortran/browse_thread/thread/a85bf5f2a97f5a55?fwc=2&hl=en
