@@ -93,3 +93,4 @@ double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }
 double ran_y(double maxY) { return maxY*UNI; }
 int ran_particle(int total) { return (int)floor(total*UNI); }
 double ran_u() { return UNI; }
+double ran_du() { return 2.0*UNI - 1.0; }
