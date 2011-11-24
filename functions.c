@@ -73,20 +73,21 @@ double delta_u(double x[][3], double xn[][3], double q[], int n, double ep, doub
   double delta_e = 0.0;
   int i;
   
-  //OpenMP loop parallelization occurs here.
-#pragma omp for default(none) shared(i,n,N,Nl,Lmax,ep,h,q,x,xn,delta_e)
-  for (i = 0; i < N+2*Nl; i++)
-    {
-      double new_e, old_e;
-      if(i!=n) {
-	new_e = total_u(n, q[n], xn[n][0], xn[n][1], xn[n][2],		\
-			i, q[i], xn[i][0], xn[i][1], xn[i][2], ep, h, Lmax, N, Nl);
-	old_e = total_u(n, q[n],  x[n][0],  x[n][1],  x[n][2],		\
-			i, q[i],  x[i][0],  x[i][1],  x[i][2], ep, h, Lmax, N, Nl);
-	delta_e += new_e - old_e;
+#pragma omp parallel shared(n,N,Nl,Lmax,ep,h,q,x,xn) reduction(+:delta_e)
+  {
+    #pragma omp for
+    for (i = 0; i < N+2*Nl; i++)
+      {
+	double new_e, old_e;
+	if(i!=n) {
+	  new_e = total_u(n, q[n], xn[n][0], xn[n][1], xn[n][2],	\
+			  i, q[i], xn[i][0], xn[i][1], xn[i][2], ep, h, Lmax, N, Nl);
+	  old_e = total_u(n, q[n],  x[n][0],  x[n][1],  x[n][2],	\
+			  i, q[i],  x[i][0],  x[i][1],  x[i][2], ep, h, Lmax, N, Nl);
+	  delta_e += new_e - old_e;
+	}
       }
-    }
-  
+  }
   return delta_e;
 }
 double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }
