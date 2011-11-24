@@ -76,7 +76,7 @@ int main(int argc, char **argv) {
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
     
-    De = delta_u(xn,x,q,ranN,ep,h,Lmax,N,Nl);
+    De = delta_u(x,xn,q,ranN,ep,h,Lmax,N,Nl);
     
     if(De < 0 || exp(-De/kbt) > ran_u()) {
       x[ranN][0] = xn[ranN][0];
