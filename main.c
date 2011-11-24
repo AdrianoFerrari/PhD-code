@@ -2,6 +2,9 @@
 
 int main(int argc, char **argv) {
   if(argc != 13) { printf("Usage: ./main N Nl qci ep h Lmax T kbt0 kbtf R file posOut\n"); return 0; }
+  clock_t ticks1,ticks2;
+  ticks1 = clock();
+  ticks2 = ticks1;
   
   //variable init
   int s;
@@ -100,4 +103,6 @@ int main(int argc, char **argv) {
 
   //close files
   if(posOut != 0) { fclose(pos); }
+  ticks2=clock();
+  printf("%f\n",(float) (ticks2-ticks1)/CLOCKS_PER_SEC);
 }

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "bessels.h"
 #include <omp.h>
+#include <time.h>
 
 #define PI 3.14159265358979323846
 #define twoPI 6.283185307179586
