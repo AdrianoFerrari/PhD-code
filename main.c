@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
     
     if(posOut != 0 && s % posOut == 0) {
       fprintf(pos,"%d\n",N+2*Nl);
-      fprintf(pos,"rundata\n");
+      fprintf(pos,"N%d Nl%d q%f ep%f h%f Lmax%f T%d kbt%f R%f pos%d\n",N,Nl,ci_charge,ep,h,Lmax,T,kbt,R,posOut);
       for(i=0;i<N+2*Nl;i++) {
 	fprintf(pos,"%d %f %f %f\n",on_chain(i,N,Nl)?10:1,x[i][0],x[i][1],x[i][2]);
       }
