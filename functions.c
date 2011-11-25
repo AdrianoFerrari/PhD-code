@@ -69,14 +69,13 @@ double total_u(int i,double q0,double x0,double y0,double z0,double j,double q1,
   
   return total;
 }
-double delta_u(double x[][3], double xn[][3], double q[], int n, double ep, double h, double Lmax, int N, int Nl) {
+double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double Lmax, int N, int Nl) {
   double delta_e = 0.0;
-  int i;
   
 #pragma omp parallel shared(n,N,Nl,Lmax,ep,h,q,x,xn) reduction(+:delta_e)
   {
     #pragma omp for
-    for (i = 0; i < N+2*Nl; i++)
+    for (int i = 0; i < N+2*Nl; i++)
       {
 	double new_e, old_e;
 	if(i!=n) {

@@ -1,14 +1,13 @@
 #include "functions.c"
 
 int main(int argc, char **argv) {
-  if(argc != 13) { printf("Usage: ./main N Nl qci ep h Lmax T kbt0 kbtf R file posOut\n"); return 0; }
+  if(argc != 12) { printf("Usage: ./main N Nl qci ep h Lmax T kbt R file posOut\n"); return 0; }
   clock_t ticks1,ticks2;
   ticks1 = clock();
   ticks2 = ticks1;
   
   //variable init
   int s;
-  double kbt;
   double dx, dy, dz, step;
   double acceptance_rate = 0.0;
   double De;
@@ -23,19 +22,28 @@ int main(int argc, char **argv) {
   double h          = atof(argv[5]);
   double Lmax       = atof(argv[6]);
   int T             = atoi(argv[7]);
-  double kbt0       = atof(argv[8]);
-  double kbtf       = atof(argv[9]);
-  double R          = atof(argv[10]);
-  sprintf(filename,"%s",argv[11]);
-  int posOut        = atoi(argv[12]);
+  double kbt        = atof(argv[8]);
+  double R          = atof(argv[9]);
+  sprintf(filename,"%s",argv[10]);
+  int posOut        = atoi(argv[11]);
   
   //inits
   double qL = -0.5*N*ci_charge;
 
   //init arrays
-  double q[N+2*Nl];
-  double x[N+2*Nl][3];
-  double xn[N+2*Nl][3];
+  double *q; 
+  double **x; double **xn;
+  q = malloc((N+2*Nl)*sizeof(double));
+  x = malloc((N+2*Nl)*sizeof(double *));
+  xn = malloc((N+2*Nl)*sizeof(double *));
+
+  for(int i=0;i<N+2*Nl;i++)
+    {
+      x[i] = malloc(3*sizeof(double));
+      xn[i] = malloc(3*sizeof(double));
+      if(x[i] == NULL || xn[i] == NULL)
+	{ printf("Out of memory\n"); }
+    }
 
   //set random seed
   settable(1234567890987654321ULL, 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
@@ -71,7 +79,6 @@ int main(int argc, char **argv) {
 
   //MC loop
   for(s=0; s < T; s++) {
-    kbt = kbt0;
     ranN = ran_particle(N+2*Nl);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
     step = on_chain(ranN, N, Nl) ? 0.2 : 0.6;
@@ -103,6 +110,14 @@ int main(int argc, char **argv) {
 
   //close files
   if(posOut != 0) { fclose(pos); }
+
+  for(int i=0; i< N+2*Nl; i++)
+    {
+      free(x[i]);
+      free(xn[i]);
+    }
+  free(x); free(xn); free(q);
+
   ticks2=clock();
   printf("%f\n",(float) (ticks2-ticks1)/CLOCKS_PER_SEC);
 }
