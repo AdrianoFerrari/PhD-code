@@ -2,9 +2,8 @@
 
 int main(int argc, char **argv) {
   if(argc != 12) { printf("Usage: ./main N Nl qci ep h Lmax T kbt R file posOut\n"); return 0; }
-  clock_t ticks1,ticks2;
-  ticks1 = clock();
-  ticks2 = ticks1;
+  pca_time tt;
+  tick(&tt);
   
   //variable init
   int s;
@@ -118,6 +117,5 @@ int main(int argc, char **argv) {
     }
   free(x); free(xn); free(q);
 
-  ticks2=clock();
-  printf("%f\n",(float) (ticks2-ticks1)/CLOCKS_PER_SEC);
+  tock(&tt);
 }

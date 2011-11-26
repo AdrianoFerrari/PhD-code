@@ -43,7 +43,7 @@ bool is_endpoint(int i,int N,int Nl) {
   }
   else {return false;}
 }
-bool linked(int i, int j, int N, int Nl) {
+/*bool linked(int i, int j, int N, int Nl) {
   if (i>j) {
     int t;
     t = i;
@@ -58,7 +58,7 @@ bool linked(int i, int j, int N, int Nl) {
   }
   else if (abs(i-j) != 1) { return false; }
   else { return true; }
-}
+  }*/
 double total_u(int i,double q0,double x0,double y0,double z0,double j,double q1,double x1,double y1,double z1,double ep,double h,double Lmax,int N,int Nl) {
   double total = 0.0;
   total += lekner_u(q0,x0,y0,z0,q1,x1,y1,z1) + repulsive_u(ep,x0,y0,z0,x1,y1,z1);
@@ -77,12 +77,73 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
     #pragma omp for
     for (int i = 0; i < N+2*Nl; i++)
       {
-	double new_e, old_e;
 	if(i!=n) {
-	  new_e = total_u(n, q[n], xn[n][0], xn[n][1], xn[n][2],	\
-			  i, q[i], xn[i][0], xn[i][1], xn[i][2], ep, h, Lmax, N, Nl);
-	  old_e = total_u(n, q[n],  x[n][0],  x[n][1],  x[n][2],	\
-			  i, q[i],  x[i][0],  x[i][1],  x[i][2], ep, h, Lmax, N, Nl);
+	  double new_e, old_e;
+	  double lek = 0; double rep = 0; double spring = 0;
+	  double rxz, r, y;
+	
+      //-OLD config energy
+	  rxz = sqrt((x[i][0]-x[n][0])*(x[i][0]-x[n][0]) + (x[i][2]-x[n][2])*(x[i][2]-x[n][2]));
+	  y   = dist(x[i][1],x[n][1]);
+	  r   = sqrt(rxz*rxz+y*y);
+	  
+	  //---Lekner E
+	  for(int n = 1; n <=M; n++)
+	    {
+	      if(rxz != 0) {
+		lek += 4.0*q[n]*q[i]*cos(twoPI*n*y*uy)*gsl_sf_bessel_K0(twoPI*n*rxz*uy)*uy;}
+	    }
+	  lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+	  
+	  //---Repulsive E
+	  if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
+	    rep = ep/pow(r*r,6);
+	  }
+	  else if (r == 0.0) {
+	    rep = 10e30;
+	  }
+
+	  //---Spring E
+	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
+	    if (r >= Lmax) { spring = 1e10; }
+	    else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
+	  }
+	  
+	  //---Sum old E
+	  old_e = lek + rep + spring;
+
+      //-NEW config energy
+	  lek = rep = spring = 0;
+	  rxz = sqrt((xn[i][0]-xn[n][0])*(xn[i][0]-xn[n][0]) + (xn[i][2]-xn[n][2])*(xn[i][2]-xn[n][2]));
+	  y   = dist(xn[i][1],xn[n][1]);
+	  r   = sqrt(rxz*rxz+y*y);
+	  
+	  //---Lekner E
+	  for(int n = 1; n <=M; n++)
+	    {
+	      if(rxz != 0) {
+		lek += 4.0*q[n]*q[i]*cos(twoPI*n*y*uy)*gsl_sf_bessel_K0(twoPI*n*rxz*uy)*uy;}
+	    }
+	  lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+	  
+	  //---Repulsive E
+	  if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
+	    rep = ep/pow(r*r,6);
+	  }
+	  else if (r == 0.0) {
+	    rep = 10e30;
+	  }
+
+	  //---Spring E
+	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
+	    if (r >= Lmax) { spring = 1e10; }
+	    else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
+	  }
+	  
+	  //---Sum old E
+	  new_e = lek + rep + spring;
+	  
+     //-DELTA E
 	  delta_e += new_e - old_e;
 	}
       }
