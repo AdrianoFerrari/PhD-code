@@ -105,7 +105,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 
 	  //---Spring E
 	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-	    if (r >= Lmax) { spring = 1e10; }
+	    if (r >= Lmax) { spring = 10e30; }
 	    else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
 	  }
 	  
@@ -136,7 +136,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 
 	  //---Spring E
 	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-	    if (r >= Lmax) { spring = 1e10; }
+	    if (r >= Lmax) { spring = 10e30; }
 	    else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
 	  }
 	  

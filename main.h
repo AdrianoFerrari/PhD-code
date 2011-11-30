@@ -8,8 +8,7 @@
 
 #define PI 3.14159265358979323846
 #define twoPI 6.283185307179586
-#define SWAP(a, b) do { a ^= b; b ^= a; a ^= b; } while ( 0 )
-#define linked(i,j,N,Nl) (((j>N-1) && (((i-j == 1) && (i != N+Nl)) || ((i==N+Nl-1) && (j == N)))))
+#define linked(i,j,N,Nl) ((abs(i-j)==1) || (abs(i-j)==Nl-1)) && (((i>=N && i<N+Nl) && (j>=N && j<N+Nl)) || ((i>=N+Nl && i<N+2*Nl) && (j>=N+Nl && j<N+2*Nl)))
 
 typedef struct timeval pca_time;
 void tick(pca_time *tt)
@@ -47,4 +46,4 @@ const double maxR = 16.0;
 const double Ly = 24.0;
 const double uy = 0.041666666666;
 const int M = 7;//Lekner terms
-#define dist(y1,y0) (abs(y1-y0) > Ly/2.0 ? abs(y1-y0) - Ly/2.0 : abs(y1-y0))
+#define dist(y1,y0) 12*abs(2*(abs(y1-y0)/24.0-floor(abs(y1-y0)/24.0+0.5)))
