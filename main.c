@@ -65,13 +65,13 @@ int main(int argc, char **argv) {
     else if (i<N+Nl) {
       q[i] = qL;
       x[i][0] = xn[i][0] = -0.5*R;
-      x[i][1] = xn[i][1] = (i-N)*Ly/Nl - 0.5*Ly;
+      x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
     }
     else {
       q[i] = qL;
       x[i][0] = xn[i][0] = 0.5*R;
-      x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl - 0.5*Ly;
+      x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
     }
   }
