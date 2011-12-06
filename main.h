@@ -46,4 +46,4 @@ const double maxR = 16.0;
 const double Ly = 24.0;
 const double uy = 0.041666666666;
 const int M = 7;//Lekner terms
-#define dist(y1,y0) 12*abs(2*(abs(y1-y0)/24.0-floor(abs(y1-y0)/24.0+0.5)))
+#define dist(y1,y0) 24.0*fabs(fabs(y1-y0)/24.0-floor(fabs(y1-y0)/24.0+0.5))
