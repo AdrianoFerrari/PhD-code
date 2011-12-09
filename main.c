@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   for(s=0; s < T; s++) {
     ranN = ran_particle(N+2*Nl);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
-    step = on_chain(ranN, N, Nl) ? 0.2 : 0.6;
+    step = on_chain(ranN, N, Nl) ? 0.02 : 0.6;
     xn[ranN][0] += step*dx;
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
