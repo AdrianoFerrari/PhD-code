@@ -1,4 +1,4 @@
-0;136;0c#include <math.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <gsl/gsl_sf_bessel.h>
@@ -26,7 +26,7 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   }
   fxz = fxz + 2.0*q1*q0*uy/rxz;
 
-  return fxz*x/r;
+  return -1.0*fxz*x/r;
 }
 												       
 
