@@ -63,13 +63,13 @@ int main(int argc, char **argv) {
       x[i][2] = xn[i][2] = ran_xz(maxR);
     }
     else if (i<N+Nl) {
-      q[i] = qL;
+      q[i] = qL/Nl;
       x[i][0] = xn[i][0] = -0.5*R;
       x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
     }
     else {
-      q[i] = qL;
+      q[i] = qL/Nl;
       x[i][0] = xn[i][0] = 0.5*R;
       x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
