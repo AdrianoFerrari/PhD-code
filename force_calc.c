@@ -15,9 +15,9 @@ const int M = 7;//Lekner terms
 double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1) {
   double fxz, x, rxz, y, r;
   fxz = 0.0;
-  x   = (x1-x0);
-  rxz = sqrt(x*x + (z1-z0)*(z1-z0));
-  y   = dist(y1,y0);
+  x   = (x0-x1);
+  rxz = sqrt(x*x + (z0-z1)*(z0-z1));
+  y   = dist(y0,y1);
   r   = sqrt(rxz*rxz+y*y);
 
   for(int n=1; n<=M; n++) {
@@ -26,7 +26,7 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   }
   fxz = fxz + 2.0*q1*q0*uy/rxz;
 
-  return -1.0*fxz*x/r;
+  return fxz*x/r;
 }
 												       
 
