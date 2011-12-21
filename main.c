@@ -1,7 +1,7 @@
 #include "functions.c"
 
 int main(int argc, char **argv) {
-  if(argc != 12) { printf("Usage: ./main N Nl qci ep h Lmax T kbt R file posOut\n"); return 0; }
+  if(argc != 13) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut\n"); return 0; }
   pca_time tt;
   tick(&tt);
   
@@ -19,12 +19,13 @@ int main(int argc, char **argv) {
   double ci_charge  = atof(argv[3]);
   double ep         = atof(argv[4]);
   double h          = atof(argv[5]);
-  double Lmax       = atof(argv[6]);
-  int T             = atoi(argv[7]);
-  double kbt        = atof(argv[8]);
-  double R          = atof(argv[9]);
-  sprintf(filename,"%s",argv[10]);
-  int posOut        = atoi(argv[11]);
+  double htheta     = atof(argv[6]);
+  double Lmax       = atof(argv[7]);
+  int T             = atoi(argv[8]);
+  double kbt        = atof(argv[9]);
+  double R          = atof(argv[10]);
+  sprintf(filename,"%s",argv[11]);
+  int posOut        = atoi(argv[12]);
   
   //inits
   double qL = -0.5*N*ci_charge;
@@ -85,7 +86,7 @@ int main(int argc, char **argv) {
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
     
-    De = delta_u(x,xn,q,ranN,ep,h,Lmax,N,Nl);
+    De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl);
     
     if(De < 0 || exp(-De/kbt) > ran_u()) {
       x[ranN][0] = xn[ranN][0];

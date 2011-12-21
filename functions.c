@@ -22,7 +22,7 @@ double theta_du(double x1, double y1, double z1, double x0, double y0, double z0
   
   return (cnew*cnew - cold*cold + 2.0*(cnew-cold));
 }
-double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double Lmax, int N, int Nl) {
+double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double htheta, double Lmax, int N, int Nl) {
   double delta_e = 0.0;
   double x1 = xn[n][0];
   double y1 = xn[n][1];
@@ -123,7 +123,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
     } else {
       dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[n+1][0],x[n+1][1],x[n+1][2]);
     }
-    delta_e += h*dtheta;
+    delta_e += htheta*dtheta;
   }
   
   return delta_e;
