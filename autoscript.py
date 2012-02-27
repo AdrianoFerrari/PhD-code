@@ -17,8 +17,8 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos):
                                         for Po in Pos:
                                             for R in Rs:
                                                 f = open('ompjob' + str(i) + '.pbs', 'w')
-                                                filename = "N%dNl%dtF%sR%s" % (N,Nl,de(tF),de(R))
-                                                s = "#!/bin/bash\n#PBS -N %s\n#PBS -l nodes=1:ppn=8,walltime=0:05:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=8\n" % filename
+                                                filename = "N%dNl%dtF%sR%sh%sht%s" % (N,Nl,de(tF),de(R),de(h),de(ht))
+                                                s = "#!/bin/bash\n#PBS -N %s\n#PBS -l nodes=2:ppn=8,walltime=0:05:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n" % filename
                                                 s = s + "./main.exe " + str(N) + " " + str(Nl) + " " + str(charge) + " " + str(ep) + " " + str(h) + " "  + str(ht) + " " + str(r0) + " " + str(T) + " " + str(tF) + " " + str(R) + " " + filename + " " + str(Po)
                                                 f.write(s)
                                                 f.close
