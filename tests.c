@@ -1,6 +1,16 @@
 #include "functions.c"
 #include <assert.h>
 
+static void test_dist() {
+  assert(dist(0.0, 1.0) == 1.0);
+  assert(dist(0.0, 3.0) == 3.0);
+  assert(dist(5.0, 6.0) == 1.0);
+  assert(dist(-5.0, 5.0) == 10.0);
+  assert(dist(-5.0, 6.0) == 11.0);
+  assert(dist(-5.0, 7.0) == 12.0);
+  assert(dist(-5.0, 8.0) == 11.0);
+  assert(dist(0.0, 13.0) == 11.0);
+}
 static void test_on_chain() {
   //assert(!on_chain(0,32));
   //assert(!on_chain(0,32));
@@ -21,10 +31,15 @@ static void test_is_endpoint() {
   assert( is_endpoint(15, 6, 5));
 } 
 static void test_theta_du() {
-  double val = theta_du(1.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0);
+  double val = theta_du(1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0);
   double exp = 2.4674;
   double tol = 0.001;
+  assert(val >= exp-tol && val <= exp+tol);
 
+  val = theta_du(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 1.0, 0.0);
+  printf("val: %f\n", val);
+  exp = 2.4674;
+  tol = 0.001;
   assert(val >= exp-tol && val <= exp+tol);
 } 
 static void test_delta_u() {
