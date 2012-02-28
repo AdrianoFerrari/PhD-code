@@ -21,11 +21,11 @@ static void test_is_endpoint() {
   assert( is_endpoint(15, 6, 5));
 } 
 static void test_theta_du() {
-/*  double val = 1.00;
-  double exp = 1.20;
-  double tol = 0.01;
+  double val = theta_du(1.0,1.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0);
+  double exp = 2.4674;
+  double tol = 0.001;
 
-  assert(val >= exp-tol && val <= exp+tol);*/
+  assert(val >= exp-tol && val <= exp+tol);
 } 
 static void test_delta_u() {
 

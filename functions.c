@@ -11,16 +11,16 @@ bool is_endpoint(int i,int N,int Nl) {
   else {return false;}
 }
 double theta_du(double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xn, double yn, double zn){
-  double ao = sqrt( (x0-xp)*(x0-xp) + dist(y0,yp)*dist(y0,yp) + (z0-zp)*(z0-zp) );
-  double bo = sqrt( (x0-xn)*(x0-xn) + dist(y0,yn)*dist(y0,yn) + (z0-zn)*(z0-zn) );
-  double c  = sqrt( (xn-xp)*(xn-xp) + dist(yn,yp)*dist(yn,yp) + (zn-zp)*(zn-zp) );
-  double an = sqrt( (x1-xp)*(x1-xp) + dist(y1,yp)*dist(y1,yp) + (z1-zp)*(z1-zp) );
-  double bn = sqrt( (x1-xn)*(x1-xn) + dist(y1,yn)*dist(y1,yn) + (z1-zn)*(z1-zn) );
+  double ao = sqrt( (x0-xp)*(x0-xp) + (y0-yp)*(y0-yp) + (z0-zp)*(z0-zp) );
+  double bo = sqrt( (x0-xn)*(x0-xn) + (y0-yn)*(y0-yn) + (z0-zn)*(z0-zn) );
+  double c2 = (xn-xp)*(xn-xp) + (yn-yp)*(yn-yp) + (zn-zp)*(zn-zp);
+  double an = sqrt( (x1-xp)*(x1-xp) + (y1-yp)*(y1-yp) + (z1-zp)*(z1-zp) );
+  double bn = sqrt( (x1-xn)*(x1-xn) + (y1-yn)*(y1-yn) + (z1-zn)*(z1-zn) );
 
-  double th0 = acos((ao*ao+bo*bo-c*c)/(2.0*ao*bo));
-  double th1 = acos((an*an+bo*bo-c*c)/(2.0*an*bn));
+  double th0 = acos((ao*ao+bo*bo-c2)/(2.0*ao*bo));
+  double th1 = acos((an*an+bn*bn-c2)/(2.0*an*bn));
   
-  return th1*th1-th0*th0-2.0*PI*(th1-th0);
+  return th1*th1-th0*th0-twoPI*(th1-th0);
 }
 double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double htheta, double Lmax, int N, int Nl) {
   double delta_e = 0.0;
