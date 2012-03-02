@@ -37,7 +37,6 @@ static void test_theta_du() {
   assert(val >= exp-tol && val <= exp+tol);
 
   val = theta_du(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 1.0, 0.0);
-  printf("val: %f\n", val);
   exp = 2.4674;
   tol = 0.001;
   assert(val >= exp-tol && val <= exp+tol);
@@ -83,6 +82,18 @@ static void test_ran_du() {
   assert(sum/3000 >= -0.01 && sum/3000 <= 0.01);
 
 }
+static void test_lekner_fx(){
+  double val = lekner_fx(1.0, -1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0); 
+  double exp = -0.241112;
+  double tol = 0.001;
+  assert(val >= exp-tol && val <= exp+tol);
+
+  val = lekner_fx(-146.44, 80.54, -43.32, 755.8, -839.1, 388.14, 965.54, 712.41); 
+  exp = -32.6398;
+  tol = 0.001;
+  assert(val >= exp-tol && val <= exp+tol);
+
+}
 int main(int argc, char **argv) {
   test_on_chain();
   test_is_endpoint();
@@ -93,5 +104,7 @@ int main(int argc, char **argv) {
   test_ran_particle();
   test_ran_u();
   test_ran_du();
+
+  test_lekner_fx();
   return 1;
 }

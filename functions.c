@@ -139,3 +139,23 @@ double ran_y(double maxY) { return maxY*UNI; }
 int ran_particle(int total) { return (int)floor(total*UNI); }
 double ran_u() { return UNI; }
 double ran_du() { return 2.0*UNI - 1.0; }
+
+// Force calculation functions
+
+// force on particle 0 by particle 1
+double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1) {
+  double fxz, x, rxz, y, r;
+  fxz = 0.0;
+  x   = (x0-x1);
+  rxz = sqrt(x*x + (z0-z1)*(z0-z1));
+  y   = dist(y0,y1);
+  r   = sqrt(rxz*rxz+y*y);
+
+  for(int n=1; n<=M; n++) {
+    if(rxz == 0) continue;
+    fxz += 4*twoPI*q1*q0*n*cos(twoPI*n*y*uy)*gsl_sf_bessel_K1(twoPI*n*rxz*uy)*uy*uy;
+  }
+  fxz = fxz + 2.0*q1*q0*uy/rxz;
+
+  return fxz*x/r;
+}

@@ -1,34 +1,5 @@
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <gsl/gsl_sf_bessel.h>
-
-#define PI 3.14159265358979323846
-#define twoPI 6.283185307179586
-
-const double Ly = 24.0;
-const double uy = 0.041666666666;
-const int M = 7;//Lekner terms
-
-#define dist(y1,y0) Ly*fabs(fabs(y1-y0)/Ly-floor(fabs(y1-y0)/Ly+0.5))
-
-double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1) {
-  double fxz, x, rxz, y, r;
-  fxz = 0.0;
-  x   = (x0-x1);
-  rxz = sqrt(x*x + (z0-z1)*(z0-z1));
-  y   = dist(y0,y1);
-  r   = sqrt(rxz*rxz+y*y);
-
-  for(int n=1; n<=M; n++) {
-    if(rxz == 0) continue;
-    fxz += 4*twoPI*q1*q0*n*cos(twoPI*n*y*uy)*gsl_sf_bessel_K1(twoPI*n*rxz*uy)*uy*uy;
-  }
-  fxz = fxz + 2.0*q1*q0*uy/rxz;
-
-  return fxz*x/r;
-}
-												       
+#include "functions.c"
+// #include <stdio.h>
 
 int main(int argc, char **argv) {
   if(argc != 6) { printf("Usage: N Nl ci ep h\n"); }
