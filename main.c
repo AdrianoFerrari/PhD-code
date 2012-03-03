@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
   for(s=0; s < T; s++) {
     ranN = ran_particle(N+2*Nl);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
-    step = on_chain(ranN, N, Nl) ? 0.3 : 0.6;
+    step = on_chain(ranN, N) ? 0.3 : 0.6;
     xn[ranN][0] += step*dx;
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
       fprintf(pos,"%d\n",N+2*Nl);
       fprintf(pos,"N%d Nl%d q%f ep%f h%f Lmax%f T%d kbt%f R%f pos%d\n",N,Nl,ci_charge,ep,h,Lmax,T,kbt,R,posOut);
       for(i=0;i<N+2*Nl;i++) {
-	fprintf(pos,"%d %f %f %f\n",on_chain(i,N,Nl)?10:1,x[i][0],x[i][1],x[i][2]);
+        fprintf(pos,"%d %f %f %f\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2]);
       }
     }
   }

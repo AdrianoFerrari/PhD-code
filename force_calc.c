@@ -2,13 +2,14 @@
 // #include <stdio.h>
 
 int main(int argc, char **argv) {
-  if(argc != 6) { printf("Usage: N Nl ci ep h\n"); }
+  if(argc != 7) { printf("Usage: N Nl ci ep h Lmax\n"); }
 
   int N             = atoi(argv[1]);
   int Nl            = atoi(argv[2]);
   double ci_charge  = atof(argv[3]);
   double ep         = atof(argv[4]);
   double h          = atof(argv[5]);
+  double Lmax       = atof(argv[6]);
 
   //inits
   double qL = -0.5*N*ci_charge;
@@ -58,10 +59,14 @@ int main(int argc, char **argv) {
       if(i==j) { continue; }
       
       if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
-	fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
+        fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2])
+            +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+        fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
       }
       else if(i >= N+Nl) {//if i is on the right chain, add to fRx
-	fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
+        fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2])
+            +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+        fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
       }
     }
   }

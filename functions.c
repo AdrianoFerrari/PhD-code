@@ -1,6 +1,6 @@
 #include "main.h"
 
-bool on_chain(int i,int N,int Nl) {
+bool on_chain(int i,int N) {
   if (i < N) { return false; }
   else {return true; }
 }
@@ -71,7 +71,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 	  //---Spring E
 	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
 	    if (r >= Lmax) { spring = 10e30; }
-	    else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
+	    else { spring = -0.5*h*Lmax*Lmax*log(1-r*r/(Lmax*Lmax)); }
 	  }
 	  
 	  //---Sum old E
@@ -140,9 +140,7 @@ int ran_particle(int total) { return (int)floor(total*UNI); }
 double ran_u() { return UNI; }
 double ran_du() { return 2.0*UNI - 1.0; }
 
-// Force calculation functions
-
-// force on particle 0 by particle 1
+// Lekner force_x on particle 0 by particle 1
 double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1) {
   double fxz, x, rxz, y, r;
   fxz = 0.0;
@@ -158,4 +156,22 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   fxz = fxz + 2.0*q1*q0*uy/rxz;
 
   return fxz*x/r;
+}
+// Replusive force_x on particle 0 by particle 1
+double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, double z1) {
+  double x = (x0-x1);
+  double r = sqrt( x*x + dist(y0,y1)*dist(y0,y1) + (z0-z1)*(z0-z1) );
+  if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
+    return 12.0*ep*x/pow(r,14);
+  }
+  else {
+    return 0.0;
+  }
+}
+// Spring force_x on particle 0 by particle 1
+double spring_fx(double h, double Lmax, double x0, double y0, double z0, double x1, double y1, double z1) {
+  double x = (x0-x1);
+  double r = sqrt( x*x + dist(y0,y1)*dist(y0,y1) + (z0-z1)*(z0-z1) );
+  if(r < Lmax) { return -1.0*h*x/(1-r*r/(Lmax*Lmax)); }
+  else { return 0.0; }
 }
