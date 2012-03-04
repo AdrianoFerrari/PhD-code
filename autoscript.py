@@ -19,12 +19,12 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos):
                                                 f = open('ompjob' + str(i) + '.pbs', 'w')
                                                 filename = "N%dNl%de%stF%sR%sh%sht%s" % (N,Nl,de(ep),de(tF),de(R),de(h),de(ht))
                                                 s = "#!/bin/bash\n#PBS -N %s\n#PBS -l nodes=2:ppn=8,walltime=0:05:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n" % filename
-                                                s = s + "./main.exe " + str(N) + " " + str(Nl) + " " + str(charge) + " " + str(ep) + " " + str(h) + " "  + str(ht) + " " + str(r0) + " " + str(T) + " " + str(tF) + " " + str(R) + " " + filename + " " + str(Po)
+                                                s = s + "./main.exe " + str(N) + " " + str(Nl) + " " + str(charge) + " " + str(ep) + " " + str(h) + " "  + str(ht) + " " + str(r0) + " " + str(T) + " " + str(tF) + " " + str(R) + " " + filename + " " + str(Po) + " 1000"
                                                 f.write(s)
                                                 f.close
                                                 i=i+1
                                                 fscript.writelines("\t".join([str(R),str(tF),filename])+"\n")
     fscript.close
 
-generate_jobs([32],[64],[2.0],[0.1, 0.5],[1.0],[1.0],[0.4],[3000000],[0.01],[3.0],[1000])
-              #N    Nl   qci   eps         h    hth   Lmax     T       kT     R     pos
+generate_jobs([32],[64],[2.0],[0.1, 0.5],[1.0],[1.0],[0.4],[3000000],[0.01, 1.0],[1.0, 3.0, 6.0],[1000])
+              #N    Nl   qci   eps         h    hth   Lmax     T          kT           R          pos

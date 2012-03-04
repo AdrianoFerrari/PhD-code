@@ -1,13 +1,13 @@
 #include "functions.c"
 
 int main(int argc, char **argv) {
-  if(argc != 13) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut\n"); return 0; }
+  if(argc != 14) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut forceOut\n"); return 0; }
   pca_time tt;
   tick(&tt);
   
   //variable init
   int s;
-  double dx, dy, dz, step;
+  double dx, dy, dz, step, fLx, fRx;
   double acceptance_rate = 0.0;
   double De;
   char filename[32];
@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   double R          = atof(argv[10]);
   sprintf(filename,"%s",argv[11]);
   int posOut        = atoi(argv[12]);
+  int forceOut      = atoi(argv[13]);
   
   //inits
   double qL = -0.5*N*ci_charge;
@@ -53,6 +54,11 @@ int main(int argc, char **argv) {
   FILE *pos;
   if (posOut != 0) {
     sprintf(fname, "%s.xyz",filename); pos=fopen(fname,"w");
+  }
+  char fnameforce [32];
+  FILE *force;
+  if (forceOut != 0) {
+    sprintf(fnameforce, "%s.f",filename); force=fopen(fnameforce,"w");
   }
 
   //initialize particles
@@ -106,10 +112,33 @@ int main(int argc, char **argv) {
         fprintf(pos,"%d %f %f %f\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2]);
       }
     }
+
+    if(forceOut != 0 && s % forceOut == 0) {
+      fLx = 0.0;
+      fRx = 0.0;
+      for(int i=0; i<N+2*Nl; i++) {
+        for(int j=0; j< N+2*Nl;j++) {
+          if(i==j) { continue; }
+          
+          if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
+            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2])
+                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+          }
+          else if(i >= N+Nl) {//if i is on the right chain, add to fRx
+            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2])
+                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+          }
+        }
+      }
+      fprintf(force, "%f\t%f\n", fLx, fRx);
+    }
   }
 
   //close files
   if(posOut != 0) { fclose(pos); }
+  if(forceOut != 0) { fclose(force); }
 
   for(int i=0; i< N+2*Nl; i++)
     {
