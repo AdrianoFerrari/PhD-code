@@ -53,16 +53,10 @@ static void test_theta_du() {
   assert(val >= exp-tol && val <= exp+tol);
 } 
 static void test_delta_u() {
-/*  double val = delta_u(1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0);
+  /*double val = delta_u(1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0);
   double exp = 2.4674;
   double tol = 0.001;
-  assert(val >= exp-tol && val <= exp+tol);
-
-  val = delta_u(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 23.0, 0.0, 0.0, 1.0, 0.0);
-  exp = 2.4674;
-  tol = 0.001;
   assert(val >= exp-tol && val <= exp+tol);*/
-  printf("Untested: delta_u\n");
 } 
 static void test_ran_xz() {
   double r;
@@ -113,6 +107,14 @@ static void test_lekner_fx(){
 
   val = lekner_fx(-146.44, 80.54, -43.32, 755.8, -839.1, 388.14, 965.54, 712.41); 
   exp = -32.6398;
+  tol = 0.001;
+  assert(val >= exp-tol && val <= exp+tol);
+
+  val = lekner_fx(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0); 
+  assert(isnan(val));
+
+  val = lekner_fx(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 3.0, 0.0); 
+  exp = 0.0;
   tol = 0.001;
   assert(val >= exp-tol && val <= exp+tol);
 }

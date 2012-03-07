@@ -148,9 +148,10 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   rxz = sqrt(x*x + (z0-z1)*(z0-z1));
   y   = dist(y0,y1);
   r   = sqrt(rxz*rxz+y*y);
+  if(rxz == 0.0 && y != 0.0) { return 0.0;}
+  if(rxz == 0.0 && y == 0.0) { return NAN;}
 
   for(int n=1; n<=M; n++) {
-    if(rxz == 0) continue;
     fxz += 4*twoPI*q1*q0*n*cos(twoPI*n*y*uy)*gsl_sf_bessel_K1(twoPI*n*rxz*uy)*uy*uy;
   }
   fxz = fxz + 2.0*q1*q0*uy/rxz;

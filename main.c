@@ -1,13 +1,15 @@
 #include "functions.c"
 
 int main(int argc, char **argv) {
-  if(argc != 14) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut forceOut\n"); return 0; }
+  if(argc != 15) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut forceOut seed\n"); return 0; }
   pca_time tt;
   tick(&tt);
   
   //variable init
   int s;
   double dx, dy, dz, step, fLx, fRx;
+  double fLavg = 0.0;
+  double fRavg = 0.0;
   double acceptance_rate = 0.0;
   double De;
   char filename[32];
@@ -27,6 +29,7 @@ int main(int argc, char **argv) {
   sprintf(filename,"%s",argv[11]);
   int posOut        = atoi(argv[12]);
   int forceOut      = atoi(argv[13]);
+  int seed          = atoi(argv[14]);
   
   //inits
   double qL = -0.5*N*ci_charge;
@@ -47,7 +50,8 @@ int main(int argc, char **argv) {
     }
 
   //set random seed
-  settable(1234567890987654321ULL, 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
+  settable(1234567890987654321ULL, seed*1000000000000ULL + 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
+
 
   //open required output files
   char fname [32];
@@ -60,6 +64,7 @@ int main(int argc, char **argv) {
   if (forceOut != 0) {
     sprintf(fnameforce, "%s.f",filename); force=fopen(fnameforce,"w");
   }
+
 
   //initialize particles
   for(i=0; i<N+2*Nl;i++) {
@@ -87,7 +92,7 @@ int main(int argc, char **argv) {
   for(s=0; s < T; s++) {
     ranN = ran_particle(N+2*Nl);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
-    step = on_chain(ranN, N) ? 0.3 : 0.6;
+    step = on_chain(ranN, N) ? 0.2 : 0.6;
     xn[ranN][0] += step*dx;
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
@@ -113,7 +118,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    if(forceOut != 0 && s % forceOut == 0) {
+    if(s >= 100000 && forceOut != 0 && s % forceOut == 0) {
       fLx = 0.0;
       fRx = 0.0;
       for(int i=0; i<N+2*Nl; i++) {
@@ -121,18 +126,20 @@ int main(int argc, char **argv) {
           if(i==j) { continue; }
           
           if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
-            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2])
-                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
+                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+            //fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
           }
           else if(i >= N+Nl) {//if i is on the right chain, add to fRx
-            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2])
-                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
+                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+            //fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
           }
         }
       }
-      fprintf(force, "%f\t%f\n", fLx, fRx);
+      fLavg += fLx*forceOut/(T-100000);
+      fRavg += fRx*forceOut/(T-100000);
+      fprintf(force, "%f\t%f\n", fLavg, fRavg);
     }
   }
 
