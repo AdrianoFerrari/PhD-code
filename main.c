@@ -7,13 +7,16 @@ int main(int argc, char **argv) {
   
   //variable init
   int s;
-  double dx, dy, dz, step, fLx, fRx;
+  double dx, dy, dz, step, fLx, fRx, kbt;
   double fLavg = 0.0;
   double fRavg = 0.0;
-  double acceptance_rate = 0.0;
+  double fLnew, fRnew;
+  int accepted = 0;
+  double ct_tol = 0.5; double f_tol = 0.1;
   double De;
   char filename[32];
   int i; int ranN;
+  bool loop = true;
 
   //import simulation parameters
   int N             = atoi(argv[1]);
@@ -24,7 +27,7 @@ int main(int argc, char **argv) {
   double htheta     = atof(argv[6]);
   double Lmax       = atof(argv[7]);
   int T             = atoi(argv[8]);
-  double kbt        = atof(argv[9]);
+  double kf         = atof(argv[9]);
   double R          = atof(argv[10]);
   sprintf(filename,"%s",argv[11]);
   int posOut        = atoi(argv[12]);
@@ -89,22 +92,26 @@ int main(int argc, char **argv) {
   }
 
   //MC loop
-  for(s=0; s < T; s++) {
-    ranN = ran_particle(N+2*Nl);
+  s = 0;
+  while(loop || s == T){
+    kbt = kf; //fmax(kf, 4.0+(kf-4.0)*s*2.0/T); // from 10.0 to kf in first nth of run, then const at kf
+    ranN = ran_particle(N);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
-    step = on_chain(ranN, N) ? 0.2 : 0.6;
+    step = on_chain(ranN, N) ? 0.2 : 0.03;
+
     xn[ranN][0] += step*dx;
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
     xn[ranN][2] += step*dz;
     
     De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl);
     
-    if(De < 0 || exp(-De/kbt) > ran_u()) {
+    if(De < 0 || exp(-De/kbt) > ran_u()) { // accept
+      accepted += 1;
       x[ranN][0] = xn[ranN][0];
       x[ranN][1] = xn[ranN][1];
       x[ranN][2] = xn[ranN][2];
     }
-    else {
+    else { // reject
       xn[ranN][0] = x[ranN][0];
       xn[ranN][1] = x[ranN][1];
       xn[ranN][2] = x[ranN][2];
@@ -118,7 +125,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    if(s >= 100000 && forceOut != 0 && s % forceOut == 0) {
+    if(forceOut != 0 && s % forceOut == 0) {
       fLx = 0.0;
       fRx = 0.0;
       for(int i=0; i<N+2*Nl; i++) {
@@ -127,20 +134,32 @@ int main(int argc, char **argv) {
           
           if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
             fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
-                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-            //fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
           }
           else if(i >= N+Nl) {//if i is on the right chain, add to fRx
             fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
-                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-            //fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
+            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
           }
         }
       }
-      fLavg += fLx*forceOut/(T-100000);
-      fRavg += fRx*forceOut/(T-100000);
-      fprintf(force, "%f\t%f\n", fLavg, fRavg);
+      fLnew = (fLavg*s+fLx)/(s+1);
+      fRnew = (fRavg*s+fRx)/(s+1);
+ 
+      if(  s > 20000
+        && fabs(fLnew-fLavg) < ct_tol
+        && fabs(fRnew-fRavg) < ct_tol
+        && 2.0*fabs(fLnew+fRnew)/fabs(fLnew-fRnew) < f_tol
+        ) {
+          loop = false;
+          }
+
+      fLavg = fLnew;
+      fRavg = fRnew;
+      fprintf(force, "%f\t%f\t%f\n", R, fLavg, fRavg);
     }
+  s++;
   }
 
   //close files
@@ -154,5 +173,6 @@ int main(int argc, char **argv) {
     }
   free(x); free(xn); free(q);
 
+  printf("%d\t%d\n", accepted, s);
   tock(&tt);
 }
