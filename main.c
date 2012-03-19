@@ -4,6 +4,7 @@ int main(int argc, char **argv) {
   if(argc != 15) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut forceOut seed\n"); return 0; }
   pca_time tt;
   tick(&tt);
+  gsl_set_error_handler_off();
   
   //variable init
   int s;
@@ -12,7 +13,7 @@ int main(int argc, char **argv) {
   double fRavg = 0.0;
   double fLnew, fRnew;
   int accepted = 0;
-  double ct_tol = 0.5; double f_tol = 0.1;
+  double ct_tol = 0.1; double f_tol = 0.1;
   double De;
   char filename[32];
   int i; int ranN;
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
   int seed          = atoi(argv[14]);
   
   //inits
-  double qL = -0.5*N*ci_charge;
+  double qL = -0.5*N*ci_charge/(1.0*Nl);
 
   //init arrays
   double *q; 
@@ -78,13 +79,13 @@ int main(int argc, char **argv) {
       x[i][2] = xn[i][2] = ran_xz(maxR);
     }
     else if (i<N+Nl) {
-      q[i] = qL/Nl;
+      q[i] = qL*(sin(twoPI*6.0*(i-N)/Nl+0.0)+1);
       x[i][0] = xn[i][0] = -0.5*R;
       x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
     }
     else {
-      q[i] = qL/Nl;
+      q[i] = qL*(sin(twoPI*6.0*(i-N-Nl)/Nl+0.5*twoPI)+1);
       x[i][0] = xn[i][0] = 0.5*R;
       x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
@@ -93,7 +94,7 @@ int main(int argc, char **argv) {
 
   //MC loop
   s = 0;
-  while(loop || s == T){
+  while(loop && s < T){
     kbt = kf; //fmax(kf, 4.0+(kf-4.0)*s*2.0/T); // from 10.0 to kf in first nth of run, then const at kf
     ranN = ran_particle(N);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
@@ -157,10 +158,11 @@ int main(int argc, char **argv) {
 
       fLavg = fLnew;
       fRavg = fRnew;
-      fprintf(force, "%f\t%f\t%f\n", R, fLavg, fRavg);
     }
   s++;
   }
+
+  fprintf(force, "%f\t%f\t%f\n", R, fLavg, fRavg);
 
   //close files
   if(posOut != 0) { fclose(pos); }
