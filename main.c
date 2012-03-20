@@ -9,9 +9,7 @@ int main(int argc, char **argv) {
   //variable init
   int s;
   double dx, dy, dz, step, fLx, fRx, kbt;
-  double fLavg = 0.0;
-  double fRavg = 0.0;
-  double fLnew, fRnew;
+  double fLprev=0.0, fRprev=0.0;
   int accepted = 0;
   double ct_tol = 0.1; double f_tol = 0.1;
   double De;
@@ -74,18 +72,18 @@ int main(int argc, char **argv) {
   for(i=0; i<N+2*Nl;i++) {
     if(i<N) {
       q[i] = ci_charge;
-      x[i][0] = xn[i][0] = ran_xz(maxR);
+      x[i][0] = xn[i][0] = ran_xz(R);
       x[i][1] = xn[i][1] = ran_y(Ly);
-      x[i][2] = xn[i][2] = ran_xz(maxR);
+      x[i][2] = xn[i][2] = ran_xz(0.5*R);
     }
     else if (i<N+Nl) {
-      q[i] = qL*(sin(twoPI*6.0*(i-N)/Nl+0.0)+1);
+      q[i] = qL;
       x[i][0] = xn[i][0] = -0.5*R;
       x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
     }
     else {
-      q[i] = qL*(sin(twoPI*6.0*(i-N-Nl)/Nl+0.5*twoPI)+1);
+      q[i] = qL;
       x[i][0] = xn[i][0] = 0.5*R;
       x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
       x[i][2] = xn[i][2] = 0.0;
@@ -93,12 +91,11 @@ int main(int argc, char **argv) {
   }
 
   //MC loop
-  s = 0;
-  while(loop && s < T){
-    kbt = kf; //fmax(kf, 4.0+(kf-4.0)*s*2.0/T); // from 10.0 to kf in first nth of run, then const at kf
+  for(s = 0; s < T; s++) {
+    kbt = kf;
     ranN = ran_particle(N);
     dx = ran_du(); dy = ran_du(); dz = ran_du();
-    step = on_chain(ranN, N) ? 0.2 : 0.03;
+    step = on_chain(ranN, N) ? 0.2 : 0.01;
 
     xn[ranN][0] += step*dx;
     xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
@@ -145,24 +142,14 @@ int main(int argc, char **argv) {
           }
         }
       }
-      fLnew = (fLavg*s+fLx)/(s+1);
-      fRnew = (fRavg*s+fRx)/(s+1);
  
-      if(  s > 20000
-        && fabs(fLnew-fLavg) < ct_tol
-        && fabs(fRnew-fRavg) < ct_tol
-        && 2.0*fabs(fLnew+fRnew)/fabs(fLnew-fRnew) < f_tol
-        ) {
-          loop = false;
-          }
+      fLprev = fLx;
+      fRprev = fRx;
 
-      fLavg = fLnew;
-      fRavg = fRnew;
+      if(s >= 160000) fprintf(force, "%f\t%f\t%f\n", R, fLx, fRx);
     }
-  s++;
   }
 
-  fprintf(force, "%f\t%f\t%f\n", R, fLavg, fRavg);
 
   //close files
   if(posOut != 0) { fclose(pos); }
