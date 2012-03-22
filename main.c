@@ -1,7 +1,6 @@
 #include "functions.c"
 
 int main(int argc, char **argv) {
-  if(argc != 15) { printf("Usage: ./main N Nl qci ep h htheta Lmax T kbt R file posOut forceOut seed\n"); return 0; }
   pca_time tt;
   tick(&tt);
   gsl_set_error_handler_off();
@@ -11,28 +10,59 @@ int main(int argc, char **argv) {
   double dx, dy, dz, step, fLx, fRx, kbt;
   double fLprev=0.0, fRprev=0.0;
   int accepted = 0;
-  double ct_tol = 0.1; double f_tol = 0.1;
   double De;
   char filename[32];
   int i; int ranN;
   bool loop = true;
 
+  //default parameters
+  int N             = 16;
+  int Nl            = 32;
+  double ci_charge  = 2.0;
+  double ep         = 1.0;
+  double h          = 1.0;
+  double htheta     = 1.0;
+  double Lmax       = 0.8;
+  int T             = 3000000;
+  double kf         = 0.5;
+  double R          = 2.0;
+  int posOut        = 10000;
+  int forceOut      = 1600;
+  int seed          = 1;
+
+
   //import simulation parameters
-  int N             = atoi(argv[1]);
-  int Nl            = atoi(argv[2]);
-  double ci_charge  = atof(argv[3]);
-  double ep         = atof(argv[4]);
-  double h          = atof(argv[5]);
-  double htheta     = atof(argv[6]);
-  double Lmax       = atof(argv[7]);
-  int T             = atoi(argv[8]);
-  double kf         = atof(argv[9]);
-  double R          = atof(argv[10]);
-  sprintf(filename,"%s",argv[11]);
-  int posOut        = atoi(argv[12]);
-  int forceOut      = atoi(argv[13]);
-  int seed          = atoi(argv[14]);
-  
+  for(int i = 1; i < argc;i++) {
+    if ( strcmp(argv[i], "-N") == 0 )
+      N  = atoi(argv[++i]);
+    else if ( strcmp(argv[i], "-Nl") == 0)
+      Nl = atoi(argv[++i]);
+    else if ( strcmp(argv[i], "-q") == 0 )
+      ci_charge  = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-e") == 0 )
+      ep = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-h") == 0 )
+      h  = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-hth") == 0 )
+      htheta = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-L") == 0 )
+      Lmax   = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-T") == 0 )
+      T      = atoi(argv[++i]);
+    else if ( strcmp(argv[i], "-kf") == 0 )
+      kf     = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-R") == 0 )
+      R      = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-po") == 0 )
+      posOut = atoi(argv[++i]);
+    else if ( strcmp(argv[i], "-fo") == 0 )
+      forceOut = atoi(argv[++i]);
+    else if ( strcmp(argv[i], "-s") == 0 )
+      seed     = atoi(argv[++i]);
+    else if ( strcmp(argv[i], "-f") == 0 )
+      strcpy(filename,argv[++i]); 
+  }
+ 
   //inits
   double qL = -0.5*N*ci_charge/(1.0*Nl);
 
@@ -52,7 +82,7 @@ int main(int argc, char **argv) {
     }
 
   //set random seed
-  settable(1234567890987654321ULL, seed*1000000000000ULL + 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
+  settable(1234567890987654321ULL, seed*1000 + 123456123456123456ULL, 362436362436362436ULL, 1066149217761810ULL);
 
 
   //open required output files
