@@ -126,14 +126,17 @@ int main(int argc, char **argv) {
 
   //MC loop
   for(s = 0; s < T; s++) {
-    for(n = 0; n < N; n++) {
+    for(n = 0; n < N+2*Nl; n++) {
       kbt = kf;
-      ranN = ran_particle(N);
+      ranN = ran_particle(N+2*Nl);
       dx = ran_du(); dy = ran_du(); dz = ran_du();
 
       xn[ranN][0] += step*dx;
       xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
       xn[ranN][2] += step*dz;
+
+      if(xn[ranN][1] < 0.0) xn[ranN][1] += Ly;
+      else if(xn[ranN][1] > Ly) xn[ranN][1] -= Ly;
       
       De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl);
       
@@ -212,6 +215,6 @@ int main(int argc, char **argv) {
     }
   free(x); free(xn); free(q);
 
-  printf("%d\t%d\t%f\n", accepted, N*(s-nequil),accepted/(N*(s-nequil)));
+  printf("%d\t%d\t\n", accepted, N*(s-nequil));
   tock(&tt);
 }
