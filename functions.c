@@ -40,78 +40,77 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 #pragma omp parallel shared(n,N,Nl,Lmax,ep,h,q,x,xn,x1,y1,z1,x0,y0,z0) reduction(+:delta_e)
   {
     #pragma omp for
-    for (int i = 0; i < N+2*Nl; i++)
-      {
-	if(i!=n) {
-	  double new_e, old_e;
-	  double lek = 0; double rep = 0; double spring = 0;
-	  double rxz, r, y;
-	
-      //-OLD config energy
-	  rxz = sqrt((x[i][0]-x0)*(x[i][0]-x0) + (x[i][2]-z0)*(x[i][2]-z0));
-	  y   = dist(x[i][1],y0);
-	  r   = sqrt(rxz*rxz+y*y);
-	  
-	  //---Lekner E
-	  for(int n = 1; n <=M; n++)
-	    {
-	      if(rxz != 0) {
-		lek += 4.0*q[n]*q[i]*cos(twoPI*n*y*uy)*gsl_sf_bessel_K0(twoPI*n*rxz*uy)*uy;}
-	    }
-	  lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
-	  
-	  //---Repulsive E
-	  if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
-	    rep = ep/pow(r*r,6);
-	  }
-	  else if (r == 0.0) {
-	    rep = 10e30;
-	  }
+    for (int i = 0; i < N+2*Nl; i++) {
+      if(i!=n) {
+        double new_e, old_e;
+        double lek = 0; double rep = 0; double spring = 0;
+        double rxz, r, y;
+      
+          //-OLD config energy
+        rxz = sqrt((x[i][0]-x0)*(x[i][0]-x0) + (x[i][2]-z0)*(x[i][2]-z0));
+        y   = dist(x[i][1],y0);
+        r   = sqrt(rxz*rxz+y*y);
+        
+        //---Lekner E
+        for(int j = 1; j <=M; j++)
+          {
+            if(rxz != 0) {
+        lek += 4.0*q[n]*q[i]*cos(twoPI*j*y*uy)*gsl_sf_bessel_K0(twoPI*j*rxz*uy)*uy;}
+          }
+        lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+        
+        //---Repulsive E
+        if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
+          rep = ep/pow(r*r,6);
+        }
+        else if (r == 0.0) {
+          rep = 10e30;
+        }
 
-	  //---Spring E
-	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-	    if (r >= Lmax) { spring = 10e30; }
-	    else { spring = -0.5*h*Lmax*Lmax*log(1-r*r/(Lmax*Lmax)); }
-	  }
-	  
-	  //---Sum old E
-	  old_e = lek + rep + spring;
+        //---Spring E
+        if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
+          if (r >= Lmax) { spring = 10e30; }
+          else { spring = -0.5*h*Lmax*Lmax*log(1-r*r/(Lmax*Lmax)); }
+        }
+        
+        //---Sum old E
+        old_e = lek + rep + spring;
 
-      //-NEW config energy
-	  lek = rep = spring = 0;
-	  rxz = sqrt((xn[i][0]-x1)*(xn[i][0]-x1) + (xn[i][2]-z1)*(xn[i][2]-z1));
-	  y   = dist(xn[i][1],y1);
-	  r   = sqrt(rxz*rxz+y*y);
-	  
-	  //---Lekner E
-	  for(int n = 1; n <=M; n++)
-	    {
-	      if(rxz != 0) {
-		lek += 4.0*q[n]*q[i]*cos(twoPI*n*y*uy)*gsl_sf_bessel_K0(twoPI*n*rxz*uy)*uy;}
-	    }
-	  lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
-	  
-	  //---Repulsive E
-	  if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
-	    rep = ep/pow(r*r,6);
-	  }
-	  else if (r == 0.0) {
-	    rep = 10e30;
-	  }
+          //-NEW config energy
+        lek = rep = spring = 0;
+        rxz = sqrt((xn[i][0]-x1)*(xn[i][0]-x1) + (xn[i][2]-z1)*(xn[i][2]-z1));
+        y   = dist(xn[i][1],y1);
+        r   = sqrt(rxz*rxz+y*y);
+        
+        //---Lekner E
+        for(int j = 1; j <=M; j++)
+          {
+            if(rxz != 0) {
+        lek += 4.0*q[n]*q[i]*cos(twoPI*j*y*uy)*gsl_sf_bessel_K0(twoPI*j*rxz*uy)*uy;}
+          }
+        lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+        
+        //---Repulsive E
+        if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
+          rep = ep/pow(r*r,6);
+        }
+        else if (r == 0.0) {
+          rep = 10e30;
+        }
 
-	  //---Spring E
-	  if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-	    if (r >= Lmax) { spring = 10e30; }
-	    else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
-	  }
-	  
-	  //---Sum old E
-	  new_e = lek + rep + spring;
-	  
-     //-DELTA E
-	  delta_e += new_e - old_e;
-	}
+        //---Spring E
+        if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
+          if (r >= Lmax) { spring = 10e30; }
+          else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
+        }
+        
+        //---Sum old E
+        new_e = lek + rep + spring;
+        
+         //-DELTA E
+        delta_e += new_e - old_e;
       }
+    }
   }
   
   //---Delta Spring Theta
