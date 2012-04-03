@@ -52,12 +52,20 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
         r   = sqrt(rxz*rxz+y*y);
         
         //---Lekner E
-        for(int j = 1; j <=M; j++)
-          {
-            if(rxz != 0) {
-        lek += 4.0*q[n]*q[i]*cos(twoPI*j*y*uy)*gsl_sf_bessel_K0(twoPI*j*rxz*uy)*uy;}
+        if(r > 0.68173) {
+          if(rxz < 0.001) {
+            lek += 0.575646;
           }
-        lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+          else if(rxz < Ly/2.0) {
+            for(int j = 1; j <=M; j++) {
+              lek += 4.0*q[n]*q[i]*cos(twoPI*j*y*uy)*gsl_sf_bessel_K0(twoPI*j*rxz*uy)*uy;
+            }
+            lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+          }
+          else {
+            lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+          }
+        }
         
         //---Repulsive E
         if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
@@ -83,12 +91,20 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
         r   = sqrt(rxz*rxz+y*y);
         
         //---Lekner E
-        for(int j = 1; j <=M; j++)
-          {
-            if(rxz != 0) {
-        lek += 4.0*q[n]*q[i]*cos(twoPI*j*y*uy)*gsl_sf_bessel_K0(twoPI*j*rxz*uy)*uy;}
+        if(r > 0.68173) {
+          if(rxz < 0.001) {
+            lek += 0.575646;
           }
-        lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+          else if(rxz < Ly/2.0) {
+            for(int j = 1; j <=M; j++) {
+              lek += 4.0*q[n]*q[i]*cos(twoPI*j*y*uy)*gsl_sf_bessel_K0(twoPI*j*rxz*uy)*uy;
+            }
+            lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+          }
+          else {
+            lek = lek - 2.0*q[n]*q[i]*log(rxz)*uy;
+          }
+        }
         
         //---Repulsive E
         if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {

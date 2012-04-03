@@ -4,7 +4,7 @@
 int main(int argc, char **argv) {
   pca_time tt;
   tick(&tt);
-  gsl_set_error_handler_off();
+  //gsl_set_error_handler_off();
   
   //variable init
   int s,n;
@@ -112,15 +112,15 @@ int main(int argc, char **argv) {
     }
     else if (i<N+Nl) {
       q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = -0.5*R;
+      x[i][0] = xn[i][0] = -0.5*R*cos(twoPI*3.0*(i-N)/(Nl-1));
       x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
-      x[i][2] = xn[i][2] = 0.0;
+      x[i][2] = xn[i][2] = -0.5*R*sin(twoPI*3.0*(i-N)/(Nl-1));
     }
     else {
       q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = 0.5*R;
+      x[i][0] = xn[i][0] = 0.5*R*cos(twoPI*3.0*(i-N-Nl)/(Nl-1));
       x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
-      x[i][2] = xn[i][2] = 0.0;
+      x[i][2] = xn[i][2] = 0.5*R*sin(twoPI*3.0*(i-N-Nl)/(Nl-1));
     }
   }
 
@@ -201,8 +201,11 @@ int main(int argc, char **argv) {
       fprintf(force, "%f\t%f\t%f\n", R, fLx, fRx);
     } //end forceOut
 
-  }
+  } //end MC loops
 
+  for(int i=0; i<Nl;i++){
+    printf("%f\n",acos((x[N+i][0]-x[N+Nl+i][0])/sqrt((x[N+i][0]-x[N+Nl+i][0])*(x[N+i][0]-x[N+Nl+i][0])+(x[N+i][2]-x[N+Nl+i][2])*(x[N+i][2]-x[N+Nl+i][2]))));
+  }
 
   //close files
   if(posOut != 0) { fclose(pos); }
