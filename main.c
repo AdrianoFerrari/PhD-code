@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   double fLprev=0.0, fRprev=0.0;
   int accepted = 0;
   double De;
-  char filename[32];
+  char filename[64];
   int i; int ranN;
   bool loop = true;
 
@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
   int forceOut      = 100;
   int seed          = 1;
   double step       = 0.03;
+  double turns      = 0.0;
 
   //import simulation parameters
   for(int i = 1; i < argc;i++) {
@@ -62,6 +63,8 @@ int main(int argc, char **argv) {
       seed     = atoi(argv[++i]);
     else if ( strcmp(argv[i], "-D") == 0 )
       step     = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-tr") == 0 )
+      step     = atof(argv[++i]);
     else if ( strcmp(argv[i], "-f") == 0 )
       strcpy(filename,argv[++i]); 
   }
@@ -90,12 +93,12 @@ int main(int argc, char **argv) {
 
 
   //open required output files
-  char fname [32];
+  char fname [64];
   FILE *pos;
   if (posOut != 0) {
     sprintf(fname, "%s.xyz",filename); pos=fopen(fname,"w");
   }
-  char fnameforce [32];
+  char fnameforce [64];
   FILE *force;
   if (forceOut != 0) {
     sprintf(fnameforce, "%s.f",filename); force=fopen(fnameforce,"w");
@@ -112,15 +115,15 @@ int main(int argc, char **argv) {
     }
     else if (i<N+Nl) {
       q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = -0.5*R*cos(twoPI*3.0*(i-N)/(Nl-1));
+      x[i][0] = xn[i][0] = -0.5*R*cos(twoPI*turns*(i-N)/(Nl-1));
       x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
-      x[i][2] = xn[i][2] = -0.5*R*sin(twoPI*3.0*(i-N)/(Nl-1));
+      x[i][2] = xn[i][2] = -0.5*R*sin(twoPI*turns*(i-N)/(Nl-1));
     }
     else {
       q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = 0.5*R*cos(twoPI*3.0*(i-N-Nl)/(Nl-1));
+      x[i][0] = xn[i][0] = 0.5*R*cos(twoPI*turns*(i-N-Nl)/(Nl-1));
       x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
-      x[i][2] = xn[i][2] = 0.5*R*sin(twoPI*3.0*(i-N-Nl)/(Nl-1));
+      x[i][2] = xn[i][2] = 0.5*R*sin(twoPI*turns*(i-N-Nl)/(Nl-1));
     }
   }
 
