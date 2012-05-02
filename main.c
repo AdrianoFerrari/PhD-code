@@ -10,6 +10,7 @@ int main(int argc, char **argv) {
   int s,n;
   double dx, dy, dz, fLx, fRx, kbt, acc_ratio = 0.0;
   double fLprev=0.0, fRprev=0.0;
+  double sumsq, rms, xL, zL;
   int accepted = 0;
   double De;
   char filename[64];
@@ -28,10 +29,12 @@ int main(int argc, char **argv) {
   double kf         = 1.0;
   double R          = 2.0;
   int posOut        = 1000;
-  int forceOut      = 100;
+  int dataOut      = 1000;
   int seed          = 1;
   double step       = 0.03;
   double turns      = 0.0;
+  double amp        = 0.0;
+  double wv         = 0.0;
 
   //import simulation parameters
   for(int i = 1; i < argc;i++) {
@@ -58,7 +61,7 @@ int main(int argc, char **argv) {
     else if ( strcmp(argv[i], "-po") == 0 )
       posOut = atoi(argv[++i]);
     else if ( strcmp(argv[i], "-fo") == 0 )
-      forceOut = atoi(argv[++i]);
+      dataOut = atoi(argv[++i]);
     else if ( strcmp(argv[i], "-s") == 0 )
       seed     = atoi(argv[++i]);
     else if ( strcmp(argv[i], "-D") == 0 )
@@ -67,6 +70,10 @@ int main(int argc, char **argv) {
       step     = atof(argv[++i]);
     else if ( strcmp(argv[i], "-f") == 0 )
       strcpy(filename,argv[++i]); 
+    else if ( strcmp(argv[i], "-A") == 0 )
+      amp      = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-wv") == 0 )
+      wv       = atof(argv[++i]);
   }
  
   //inits
@@ -98,10 +105,12 @@ int main(int argc, char **argv) {
   if (posOut != 0) {
     sprintf(fname, "%s.xyz",filename); pos=fopen(fname,"w");
   }
-  char fnameforce [64];
-  FILE *force;
-  if (forceOut != 0) {
-    sprintf(fnameforce, "%s.f",filename); force=fopen(fnameforce,"w");
+  char fnamedata [64];
+  FILE *data;
+  if (dataOut != 0) {
+    sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"w");
+    //print headers
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\n");
   }
 
 
@@ -115,7 +124,7 @@ int main(int argc, char **argv) {
     }
     else if (i<N+Nl) {
       q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = -0.5*R*cos(twoPI*turns*(i-N)/(Nl-1));
+      x[i][0] = xn[i][0] = -0.5*R*cos(twoPI*turns*(i-N)/(Nl-1))+amp*sin(twoPI*(i-N)*Ly/Nl/wv);
       x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
       x[i][2] = xn[i][2] = -0.5*R*sin(twoPI*turns*(i-N)/(Nl-1));
     }
@@ -134,9 +143,13 @@ int main(int argc, char **argv) {
       ranN = ran_particle(N+2*Nl);
       dx = ran_du(); dy = ran_du(); dz = ran_du();
 
-      xn[ranN][0] += step*dx;
-      xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy;
-      xn[ranN][2] += step*dz;
+      if( ranN >= N && s < nequil ) { //freeze chain particles before neq
+        dx = 0.0; dy = 0.0; dz = 0.0;
+      }
+
+      xn[ranN][0] += ranN < N               ? step*dx : step*dx*0.1;
+      xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0     : step*dy;
+      xn[ranN][2] += ranN < N               ? step*dz : step*dz*0.1;
 
       if(xn[ranN][1] < 0.0) xn[ranN][1] += Ly;
       else if(xn[ranN][1] > Ly) xn[ranN][1] -= Ly;
@@ -178,9 +191,16 @@ int main(int argc, char **argv) {
       }
     }
 
-    if(forceOut != 0 && s >= nequil && s % forceOut == 0) {
+    if(dataOut != 0 && s >= nequil && s % dataOut == 0) {
+      //initialize output vars
       fLx = 0.0;
       fRx = 0.0;
+      xL  = 0.0;
+      zL  = 0.0;
+      rms  = 0.0;
+      sumsq= 0.0;
+
+      //calculate forces
       for(int i=0; i<N+2*Nl; i++) {
         for(int j=0; j< N+2*Nl;j++) {
           if(i==j) { continue; }
@@ -201,18 +221,31 @@ int main(int argc, char **argv) {
       fLprev = fLx;
       fRprev = fRx;
 
-      fprintf(force, "%f\t%f\t%f\n", R, fLx, fRx);
-    } //end forceOut
+      
+      //calculate average position of left line
+      for(int i=N; i<N+Nl; i++) {
+        xL += x[i][0]/Nl;
+        zL += x[i][2]/Nl;
+      }
+
+      //calculate rms amplitude of left line
+      for(int i=N; i<N+Nl; i++) {
+        sumsq += (x[i][0]-xL)*(x[i][0]-xL);
+      }
+      rms = sqrt(sumsq/Nl);
+
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv);
+    } //end dataOut
 
   } //end MC loops
 
-  for(int i=0; i<Nl;i++){
+  /*for(int i=0; i<Nl;i++){
     printf("%f\n",acos((x[N+i][0]-x[N+Nl+i][0])/sqrt((x[N+i][0]-x[N+Nl+i][0])*(x[N+i][0]-x[N+Nl+i][0])+(x[N+i][2]-x[N+Nl+i][2])*(x[N+i][2]-x[N+Nl+i][2]))));
-  }
+  }*/
 
   //close files
   if(posOut != 0) { fclose(pos); }
-  if(forceOut != 0) { fclose(force); }
+  if(dataOut != 0) { fclose(data); }
 
   for(int i=0; i< N+2*Nl; i++)
     {
