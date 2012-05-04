@@ -147,9 +147,9 @@ int main(int argc, char **argv) {
         dx = 0.0; dy = 0.0; dz = 0.0;
       }
 
-      xn[ranN][0] += ranN < N               ? step*dx : step*dx*0.1;
+      xn[ranN][0] += ranN < N               ? step*dx : step*dx*0.01;
       xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0     : step*dy;
-      xn[ranN][2] += ranN < N               ? step*dz : step*dz*0.1;
+      xn[ranN][2] += ranN < N               ? step*dz : step*dz*0.01;
 
       if(xn[ranN][1] < 0.0) xn[ranN][1] += Ly;
       else if(xn[ranN][1] > Ly) xn[ranN][1] -= Ly;
