@@ -68,11 +68,21 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
         }
         
         //---Repulsive E
-        if(r <= ep) {
-          rep = 10e30;
+        if(n>=N && i>=N) {
+          if(r <= Ly/(3.0*Nl)) {
+            rep = 10e30;
+          }
+          else {
+            rep = 0.0;
+          }
         }
         else {
-          rep = 0.0;
+          if(r <= ep) {
+            rep = 10e30;
+          }
+          else {
+            rep = 0.0;
+          }
         }
 
         //---Spring E
@@ -107,11 +117,21 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
         }
         
         //---Repulsive E
-        if(r <= ep) {
-          rep = 10e30;
+        if(n>=N && i>=N) {
+          if(r <= Ly/(3.0*Nl)) {
+            rep = 10e30;
+          }
+          else {
+            rep = 0.0;
+          }
         }
         else {
-          rep = 0.0;
+          if(r <= ep) {
+            rep = 10e30;
+          }
+          else {
+            rep = 0.0;
+          }
         }
 
         //---Spring E
