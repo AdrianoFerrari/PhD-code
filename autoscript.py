@@ -3,7 +3,7 @@ import random
 def de(value):
     return str(value).replace(".","_")
 
-def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv):
+def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly):
     f = open('ompjob' + str(i) + '.pbs', 'w')
 
     args = ""
@@ -36,22 +36,25 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv):
         args += "-D " + str(dx) + " "
     if A != 0.0:
         args += "-A " + str(A) + " "
-    if wv != 24.0:
+    if wv != 0.0:
         args += "-wv " + str(wv) + " "
+    if Ly != 24.0:
+        args += "-Ly " + str(Ly) + " "
     
     random.seed(args)
     random.jumpahead(sd)
+
     args += "-s " + str(random.randint(0,9999999999))
 
     filename = "out" + str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     #s += "#PBS -q debug\n"
-    s += "#PBS -l nodes=2:ppn=8,walltime=0:28:30\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
+    s += "#PBS -l nodes=2:ppn=8,walltime=1:10:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
     s = s + "./main.exe " + args + " -f " + filename
     f.write(s)
     f.close
 
-def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs):
+def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs,Lys):
     i = 0
     for N in Ns:
         for Nl in Nls:
@@ -69,8 +72,9 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs
                                                       for dx in dxs:
                                                         for A in As:
                                                             for wv in wvs:
-                                                              create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv)
-                                                              i=i+1
+                                                              for Ly in Lys:
+                                                                create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly)
+                                                                i=i+1
 
-generate_jobs([32],[32],[1.0],[0.2],[10.0],[1.0],[0.825],[140000],[0.08], [0.5,1.0,2.0,6.0], [1000], [100], [1],[0.03],[0.1],[2.0,3.0,4.0,6.0,8.0,12.0])
-              #N    Nl   qci   eps    h    hth   Lmax     T     kT       R     pos        for     seeds         step
+generate_jobs([64],[64],[1.0],[0.375],[10.0],[1.0],[0.825],[1150000],[0.08], [4.0], [1000], [100], [1,2,3,4,5,6,7,8],[0.03],[0.1],[0.0],[48.0])
+              #N    Nl   qci   eps    h    hth   Lmax        T       kT          R             pos     for    seeds      step  Amp    wv

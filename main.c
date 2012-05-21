@@ -1,5 +1,5 @@
 #include "functions.c"
-#define nequil 12000
+#define nequil 36000
 
 int main(int argc, char **argv) {
   pca_time tt;
@@ -35,6 +35,12 @@ int main(int argc, char **argv) {
   double turns      = 0.0;
   double amp        = 0.0;
   double wv         = 0.0;
+  double Ly         = 24.0;
+  double ic1[64]    = {0.2813, 0.2401, 0.1369, 0.0202, -0.0601, -0.0799, -0.0498, -0.0044, 0.0221, 0.0157, -0.0124, -0.0381, -0.0432, -0.0268, -0.0040, 0.0074, 0.0, -0.0187, -0.0335, -0.0332, -0.0193, -0.0034, 0.0020, -0.0067, -0.0221, -0.0317, -0.0282, -0.0148, -0.0024, -0.0008, -0.0111, -0.0249, -0.0313, -0.0249, -0.0111, -0.0008, -0.0024, -0.0148, -0.0282, -0.0317, -0.0221, -0.0067, 0.0020, -0.0034, -0.0193, -0.0332, -0.0335, -0.0187, 0.0, 0.0074, -0.0040, -0.0268, -0.0432, -0.0381, -0.0124, 0.0157, 0.0221, -0.0044, -0.0498, -0.0799, -0.0601, 0.0202, 0.1369, 0.2401};
+  double ic2[64]    = {-0.0313, -0.0249, -0.0111, -0.0008, -0.0024, -0.0148, -0.0282, -0.0317, -0.0221, -0.0067, 0.0020, -0.0034, -0.0193, -0.0332, -0.0335, -0.0187, 0.0, 0.0074, -0.0040, -0.0268, -0.0432, -0.0381, -0.0124, 0.0157, 0.0221, -0.0044, -0.0498, -0.0799, -0.0601, 0.0202, 0.1369, 0.2401, 0.2813, 0.2401, 0.1369, 0.0202, -0.0601, -0.0799, -0.0498, -0.0044, 0.0221, 0.0157, -0.0124, -0.0381, -0.0432, -0.0268, -0.0040, 0.0074, 0.0, -0.0187, -0.0335, -0.0332, -0.0193, -0.0034, 0.0020, -0.0067, -0.0221, -0.0317, -0.0282, -0.0148, -0.0024, -0.0008, -0.0111, -0.0249 };
+
+
+ 
 
   //import simulation parameters
   for(int i = 1; i < argc;i++) {
@@ -74,6 +80,8 @@ int main(int argc, char **argv) {
       amp      = atof(argv[++i]);
     else if ( strcmp(argv[i], "-wv") == 0 )
       wv       = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-Ly") == 0 )
+      Ly       = atoi(argv[++i]);
   }
  
   //inits
@@ -154,7 +162,7 @@ int main(int argc, char **argv) {
       if(xn[ranN][1] < 0.0) xn[ranN][1] += Ly;
       else if(xn[ranN][1] > Ly) xn[ranN][1] -= Ly;
       
-      De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl);
+      De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl,Ly);
       
       if(De < 0 || exp(-De/kbt) > ran_u()) {
         if(s >= nequil) accepted += 1;
@@ -206,14 +214,14 @@ int main(int argc, char **argv) {
           if(i==j) { continue; }
           
           if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
-            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
-                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
+                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
+            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
           }
           else if(i >= N+Nl) {//if i is on the right chain, add to fRx
-            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2]);
-                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]);
-            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2]) : 0.0;
+            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
+                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
+            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
           }
         }
       }

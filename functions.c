@@ -1,5 +1,8 @@
 #include "main.h"
 
+double dist(double y1, double y0, double Ly) {
+  return Ly*fabs(fabs(y1-y0)/Ly-floor(fabs(y1-y0)/Ly+0.5));
+}
 bool on_chain(int i,int N) {
   if (i < N) { return false; }
   else {return true; }
@@ -10,12 +13,12 @@ bool is_endpoint(int i,int N,int Nl) {
   }
   else {return false;}
 }
-double theta_du(double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xn, double yn, double zn){
-  double ao = sqrt( (x0-xp)*(x0-xp) + dist(y0,yp)*dist(y0,yp) + (z0-zp)*(z0-zp) );
-  double bo = sqrt( (x0-xn)*(x0-xn) + dist(y0,yn)*dist(y0,yn) + (z0-zn)*(z0-zn) );
-  double c2 = (xn-xp)*(xn-xp) + dist(yn,yp)*dist(yn,yp) + (zn-zp)*(zn-zp);
-  double an = sqrt( (x1-xp)*(x1-xp) + dist(y1,yp)*dist(y1,yp) + (z1-zp)*(z1-zp) );
-  double bn = sqrt( (x1-xn)*(x1-xn) + dist(y1,yn)*dist(y1,yn) + (z1-zn)*(z1-zn) );
+double theta_du(double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xn, double yn, double zn, double Ly){
+  double ao = sqrt( (x0-xp)*(x0-xp) + dist(y0,yp,Ly)*dist(y0,yp,Ly) + (z0-zp)*(z0-zp) );
+  double bo = sqrt( (x0-xn)*(x0-xn) + dist(y0,yn,Ly)*dist(y0,yn,Ly) + (z0-zn)*(z0-zn) );
+  double c2 = (xn-xp)*(xn-xp) + dist(yn,yp,Ly)*dist(yn,yp,Ly) + (zn-zp)*(zn-zp);
+  double an = sqrt( (x1-xp)*(x1-xp) + dist(y1,yp,Ly)*dist(y1,yp,Ly) + (z1-zp)*(z1-zp) );
+  double bn = sqrt( (x1-xn)*(x1-xn) + dist(y1,yn,Ly)*dist(y1,yn,Ly) + (z1-zn)*(z1-zn) );
 
   double cos_th0 = (ao*ao+bo*bo-c2)/(2.0*ao*bo);
   double cos_th1 = (an*an+bn*bn-c2)/(2.0*an*bn);
@@ -28,7 +31,7 @@ double theta_du(double x1, double y1, double z1, double x0, double y0, double z0
   
   return th1*th1-th0*th0-twoPI*(th1-th0);
 }
-double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double htheta, double Lmax, int N, int Nl) {
+double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double htheta, double Lmax, int N, int Nl, double Ly) {
   double delta_e = 0.0;
   double x1 = xn[n][0];
   double y1 = xn[n][1];
@@ -37,18 +40,19 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
   double y0 = x[n][1];
   double z0 = x[n][2];
 
-#pragma omp parallel shared(n,N,Nl,Lmax,ep,h,q,x,xn,x1,y1,z1,x0,y0,z0) reduction(+:delta_e)
+#pragma omp parallel shared(n,N,Nl,Lmax,ep,h,q,x,xn,x1,y1,z1,x0,y0,z0,Ly) reduction(+:delta_e)
   {
     #pragma omp for
     for (int i = 0; i < N+2*Nl; i++) {
       if(i!=n) {
         double new_e, old_e;
         double lek = 0; double rep = 0; double spring = 0;
+        double uy = 1.0/Ly;
         double rxz, r, y;
       
           //-OLD config energy
         rxz = sqrt((x[i][0]-x0)*(x[i][0]-x0) + (x[i][2]-z0)*(x[i][2]-z0));
-        y   = dist(x[i][1],y0);
+        y   = dist(x[i][1],y0,Ly);
         r   = sqrt(rxz*rxz+y*y);
         
         //---Lekner E
@@ -97,7 +101,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
           //-NEW config energy
         lek = rep = spring = 0;
         rxz = sqrt((xn[i][0]-x1)*(xn[i][0]-x1) + (xn[i][2]-z1)*(xn[i][2]-z1));
-        y   = dist(xn[i][1],y1);
+        y   = dist(xn[i][1],y1,Ly);
         r   = sqrt(rxz*rxz+y*y);
         
         //---Lekner E
@@ -154,15 +158,15 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 
   if(n>=N) {
     if(n==N){
-      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2],x[n+1][0],x[n+1][1],x[n+1][2]);
+      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2],x[n+1][0],x[n+1][1],x[n+1][2],Ly);
     } else if(n==N+Nl-1) {
-      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[N][0],x[N][1],x[N][2]);
+      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[N][0],x[N][1],x[N][2],Ly);
     } else if(n==N+Nl) {
-      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[N+2*Nl-1][0],x[N+2*Nl-1][1],x[N+2*Nl-1][2],x[n+1][0],x[n+1][1],x[n+1][2]);
+      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[N+2*Nl-1][0],x[N+2*Nl-1][1],x[N+2*Nl-1][2],x[n+1][0],x[n+1][1],x[n+1][2],Ly);
     } else if(n==N+2*Nl-1) {
-      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[N+Nl][0],x[N+Nl][1],x[N+Nl][2]);
+      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[N+Nl][0],x[N+Nl][1],x[N+Nl][2],Ly);
     } else {
-      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[n+1][0],x[n+1][1],x[n+1][2]);
+      dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[n+1][0],x[n+1][1],x[n+1][2],Ly);
     }
     delta_e += htheta*dtheta;
   }
@@ -176,12 +180,13 @@ double ran_u() { return UNI; }
 double ran_du() { return 2.0*UNI - 1.0; }
 
 // Lekner force_x on particle 0 by particle 1
-double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1) {
+double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x1, double y1, double z1, double Ly) {
   double fxz, x, rxz, y, r;
+  double uy = 1.0/Ly;
   fxz = 0.0;
   x   = (x0-x1);
   rxz = sqrt(x*x + (z0-z1)*(z0-z1));
-  y   = dist(y0,y1);
+  y   = dist(y0,y1,Ly);
   r   = sqrt(rxz*rxz+y*y);
   if(rxz == 0.0 && y != 0.0) { return 0.0;}
   if(rxz == 0.0 && y == 0.0) { return NAN;}
@@ -194,9 +199,9 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   return fxz*x/r;
 }
 // Replusive force_x on particle 0 by particle 1
-double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, double z1) {
+double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, double z1, double Ly) {
   double x = (x0-x1);
-  double r = sqrt( x*x + dist(y0,y1)*dist(y0,y1) + (z0-z1)*(z0-z1) );
+  double r = sqrt( x*x + dist(y0,y1,Ly)*dist(y0,y1,Ly) + (z0-z1)*(z0-z1) );
   if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
     return 12.0*ep*x/pow(r,14);
   }
@@ -205,9 +210,9 @@ double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, 
   }
 }
 // Spring force_x on particle 0 by particle 1
-double spring_fx(double h, double Lmax, double x0, double y0, double z0, double x1, double y1, double z1) {
+double spring_fx(double h, double Lmax, double x0, double y0, double z0, double x1, double y1, double z1, double Ly) {
   double x = (x0-x1);
-  double r = sqrt( x*x + dist(y0,y1)*dist(y0,y1) + (z0-z1)*(z0-z1) );
+  double r = sqrt( x*x + dist(y0,y1,Ly)*dist(y0,y1,Ly) + (z0-z1)*(z0-z1) );
   if(r < Lmax) { return -1.0*h*x/(1-r*r/(Lmax*Lmax)); }
   else { return 0.0; }
 }

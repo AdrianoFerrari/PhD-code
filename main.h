@@ -45,7 +45,4 @@ void settable(ULL i1, ULL i2, ULL i3, ULL i4)
 }
 
 const double maxR = 16.0;
-const double Ly = 24.0;
-const double uy = 0.041666666666;
 const int M = 7;//Lekner terms
-#define dist(y1,y0) 24.0*fabs(fabs(y1-y0)/24.0-floor(fabs(y1-y0)/24.0+0.5))
