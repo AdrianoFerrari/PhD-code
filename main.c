@@ -4,7 +4,7 @@
 int main(int argc, char **argv) {
   pca_time tt;
   tick(&tt);
-  //gsl_set_error_handler_off();
+  gsl_set_error_handler_off();
   
   //variable init
   int s,n;
@@ -86,7 +86,8 @@ int main(int argc, char **argv) {
  
   //inits
   double qL = -0.5*N*ci_charge/(1.0*Nl);
-  step       = 0.00075+0.0084*exp((kf-0.02842)/0.0326); //doesn't allow setting a diff stepsize
+  if(step == 0.0)
+    step       = 0.00075+0.0084*exp((kf-0.02842)/0.0326);
 
   //init arrays
   double *q; 
@@ -118,7 +119,7 @@ int main(int argc, char **argv) {
   if (dataOut != 0) {
     sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"w");
     //print headers
-    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\n");
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\n");
   }
 
 
@@ -242,7 +243,7 @@ int main(int argc, char **argv) {
       }
       rms = sqrt(sumsq/Nl);
 
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp);
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step);
     } //end dataOut
 
   } //end MC loops
