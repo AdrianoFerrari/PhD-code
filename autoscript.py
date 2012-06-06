@@ -46,16 +46,19 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly):
 
     args += "-s " + str(random.randint(0,9999999999))
 
-    filename = "out" + str(i)
+    filename = "ampGrow" + str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     #s += "#PBS -q debug\n"
-    s += "#PBS -l nodes=2:ppn=8,walltime=1:10:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
+    s += "#PBS -l nodes=2:ppn=8,walltime=0:02:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
     s = s + "./main.exe " + args + " -f " + filename
     f.write(s)
     f.close
 
 def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs,Lys):
     i = 0
+    fscript = open('ampGrow_job_data','w')
+    fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds, step, Amp, wv, Ly\n")
+    fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(As)+', '+str(wvs)+', '+str(Lys))
     for N in Ns:
         for Nl in Nls:
             for charge in charges:
@@ -70,11 +73,13 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs
                                               for R in Rs:
                                                   for sd in sds:
                                                       for dx in dxs:
-                                                        for A in As:
-                                                            for wv in wvs:
-                                                              for Ly in Lys:
-                                                                create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly)
-                                                                i=i+1
+                                                          for A in As:
+                                                              for wv in wvs:
+                                                                  for Ly in Lys:
+                                                                      create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly)
+                                                                      i=i+1
+    fscript.close
 
-generate_jobs([64],[64],[1.0],[0.375],[10.0],[1.0],[0.825],[1150000],[0.08], [4.0], [1000], [100], [1,2,3,4,5,6,7,8],[0.03],[0.1],[0.0],[48.0])
-              #N    Nl   qci   eps    h    hth   Lmax        T       kT          R             pos     for    seeds      step  Amp    wv
+generate_jobs([32], [72], [1.0], [0.375], [10.0,0.0], [1.0], [24/72.0], [37400], [0.35], [4.0], [100], [10], range(1,41), [0.05], [0.3], [24.0, 12.0, 8.0, 6.0, 4.8, 4.0, 3.428571429, 3.0], [24.0])
+              #N     Nl    qci     eps      h     hth     Lmax          T        kT       R   pos    for    seeds       step    Amp        wv                                               Ly
+
