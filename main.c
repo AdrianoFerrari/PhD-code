@@ -36,11 +36,7 @@ int main(int argc, char **argv) {
   double amp        = 0.0;
   double wv         = 0.0;
   double Ly         = 24.0;
-  double ic1[64]    = {0.2813, 0.2401, 0.1369, 0.0202, -0.0601, -0.0799, -0.0498, -0.0044, 0.0221, 0.0157, -0.0124, -0.0381, -0.0432, -0.0268, -0.0040, 0.0074, 0.0, -0.0187, -0.0335, -0.0332, -0.0193, -0.0034, 0.0020, -0.0067, -0.0221, -0.0317, -0.0282, -0.0148, -0.0024, -0.0008, -0.0111, -0.0249, -0.0313, -0.0249, -0.0111, -0.0008, -0.0024, -0.0148, -0.0282, -0.0317, -0.0221, -0.0067, 0.0020, -0.0034, -0.0193, -0.0332, -0.0335, -0.0187, 0.0, 0.0074, -0.0040, -0.0268, -0.0432, -0.0381, -0.0124, 0.0157, 0.0221, -0.0044, -0.0498, -0.0799, -0.0601, 0.0202, 0.1369, 0.2401};
-  double ic2[64]    = {-0.0313, -0.0249, -0.0111, -0.0008, -0.0024, -0.0148, -0.0282, -0.0317, -0.0221, -0.0067, 0.0020, -0.0034, -0.0193, -0.0332, -0.0335, -0.0187, 0.0, 0.0074, -0.0040, -0.0268, -0.0432, -0.0381, -0.0124, 0.0157, 0.0221, -0.0044, -0.0498, -0.0799, -0.0601, 0.0202, 0.1369, 0.2401, 0.2813, 0.2401, 0.1369, 0.0202, -0.0601, -0.0799, -0.0498, -0.0044, 0.0221, 0.0157, -0.0124, -0.0381, -0.0432, -0.0268, -0.0040, 0.0074, 0.0, -0.0187, -0.0335, -0.0332, -0.0193, -0.0034, 0.0020, -0.0067, -0.0221, -0.0317, -0.0282, -0.0148, -0.0024, -0.0008, -0.0111, -0.0249 };
-
-
- 
+  int kc            = 0;
 
   //import simulation parameters
   for(int i = 1; i < argc;i++) {
@@ -81,7 +77,9 @@ int main(int argc, char **argv) {
     else if ( strcmp(argv[i], "-wv") == 0 )
       wv       = atof(argv[++i]);
     else if ( strcmp(argv[i], "-Ly") == 0 )
-      Ly       = atoi(argv[++i]);
+      Ly       = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-kc") == 0 )
+      kc       = atoi(argv[++i]);
   }
  
   //inits
@@ -124,24 +122,63 @@ int main(int argc, char **argv) {
 
 
   //initialize particles
-  for(i=0; i<N+2*Nl;i++) {
-    if(i<N) {
-      q[i]    = ci_charge*0.1;
-      x[i][0] = xn[i][0] = ran_xz(R);
-      x[i][1] = xn[i][1] = ran_y(Ly);
-      x[i][2] = xn[i][2] = ran_xz(0.5*R);
+  for(i=0; i<N;i++) {
+    q[i]    = ci_charge*0.1;
+    x[i][0] = xn[i][0] = ran_xz(R);
+    x[i][1] = xn[i][1] = ran_y(Ly);
+    x[i][2] = xn[i][2] = ran_xz(0.5*R);
+  }
+
+  //initialize perturbed chains
+  if(kc != 0) {
+    double phi1;
+    double phi2;
+
+    //linear portion
+    for(i=N; i < N+2*Nl; i++) {
+      if(i < N+Nl) {
+        q[i]    = qL*0.1;
+        x[i][0] = xn[i][0] = -0.5*R;
+        x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
+        x[i][2] = xn[i][2] = 0.0;
+      }
+      else {
+        q[i]    = qL*0.1;
+        x[i][0] = xn[i][0] = 0.5*R;
+        x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
+        x[i][2] = xn[i][2] = 0.0;
+      }
     }
-    else if (i<N+Nl) {
-      q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = -0.5*R*cos(twoPI*turns*(i-N)/(Nl-1))+amp*sin(twoPI*(i-N)*Ly/Nl/wv);
-      x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
-      x[i][2] = xn[i][2] = -0.5*R*sin(twoPI*turns*(i-N)/(Nl-1));
+
+    for(n=1; n < kc; n++) {
+      phi1 = twoPI*ran_u();
+      phi2 = twoPI*ran_u();
+      for(i=N; i < N+2*Nl; i++) {
+        if(i < N+Nl) {
+          x[i][0]  += amp*sin(twoPI*kc*(i-N)/Nl+phi1);
+          xn[i][0] += amp*sin(twoPI*kc*(i-N)/Nl+phi1);
+        }
+        else {
+          x[i][0]  += amp*sin(twoPI*kc*(i-N)/Nl+phi2);
+          xn[i][0] += amp*sin(twoPI*kc*(i-N)/Nl+phi2);
+        }
+      }
     }
-    else {
-      q[i]    = qL*0.1;
-      x[i][0] = xn[i][0] = 0.5*R*cos(twoPI*turns*(i-N-Nl)/(Nl-1));
-      x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
-      x[i][2] = xn[i][2] = 0.5*R*sin(twoPI*turns*(i-N-Nl)/(Nl-1));
+  }
+  else {
+    for(i=N; i < N+2*Nl; i++) {
+      if(i < N+Nl) {
+        q[i]    = qL*0.1;
+        x[i][0] = xn[i][0] = -0.5*R+amp*sin(twoPI*(i-N)*Ly/Nl/wv);
+        x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
+        x[i][2] = xn[i][2] = 0.0;
+      }
+      else {
+        q[i]    = qL*0.1;
+        x[i][0] = xn[i][0] = 0.5*R+amp*sin(twoPI*(i-N)*Ly/Nl/wv);
+        x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
+        x[i][2] = xn[i][2] = 0.0;
+      }
     }
   }
 
