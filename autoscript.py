@@ -3,7 +3,7 @@ import random
 def de(value):
     return str(value).replace(".","_")
 
-def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly):
+def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly,kc):
     f = open('ompjob' + str(i) + '.pbs', 'w')
 
     args = ""
@@ -40,25 +40,28 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly):
         args += "-wv " + str(wv) + " "
     if Ly != 24.0:
         args += "-Ly " + str(Ly) + " "
+    if kc != 0:
+        args += "-kc " + str(kc) + " "
     
+
     random.seed(args)
     random.jumpahead(sd)
 
     args += "-s " + str(random.randint(0,9999999999))
 
-    filename = "ampGrow" + str(i)
+    filename = "whitenoise" + str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     #s += "#PBS -q debug\n"
-    s += "#PBS -l nodes=2:ppn=8,walltime=0:02:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
+    s += "#PBS -l nodes=2:ppn=8,walltime=0:22:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
     s = s + "./main.exe " + args + " -f " + filename
     f.write(s)
     f.close
 
-def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs,Lys):
+def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs,Lys,kcs):
     i = 0
-    fscript = open('ampGrow_job_data','w')
-    fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds, step, Amp, wv, Ly\n")
-    fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(As)+', '+str(wvs)+', '+str(Lys))
+    fscript = open('whitenoise_job_data','w')
+    fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds, step, Amp, wv, Ly, kc\n")
+    fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs))
     for N in Ns:
         for Nl in Nls:
             for charge in charges:
@@ -76,10 +79,11 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs
                                                           for A in As:
                                                               for wv in wvs:
                                                                   for Ly in Lys:
-                                                                      create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly)
-                                                                      i=i+1
+                                                                      for kc in kcs:
+                                                                        create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly,kc)
+                                                                        i=i+1
     fscript.close
 
-generate_jobs([32], [72], [1.0], [0.375], [10.0,0.0], [1.0], [24/72.0], [37400], [0.35], [4.0], [100], [10], range(1,41), [0.05], [0.3], [24.0, 12.0, 8.0, 6.0, 4.8, 4.0, 3.428571429, 3.0], [24.0])
+generate_jobs([32], [64], [1.0], [0.375], [10.0], [1.0], [2.0*24/64.0], [60000], [0.35], [4.0], [1000], [1000], range(1,101), [0.05], [0.15], [12.34], [24.0], [4])
               #N     Nl    qci     eps      h     hth     Lmax          T        kT       R   pos    for    seeds       step    Amp        wv                                               Ly
 
