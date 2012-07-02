@@ -49,17 +49,17 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,A,wv,Ly,kc):
 
     args += "-s " + str(random.randint(0,9999999999))
 
-    filename = "whitenoise" + str(i)
+    filename = "wnoise" + str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     #s += "#PBS -q debug\n"
-    s += "#PBS -l nodes=2:ppn=8,walltime=0:22:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
+    s += "#PBS -l nodes=2:ppn=8,walltime=45:10:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
     s = s + "./main.exe " + args + " -f " + filename
     f.write(s)
     f.close
 
 def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs,Lys,kcs):
     i = 0
-    fscript = open('whitenoise_job_data','w')
+    fscript = open('wnoise_job_data','w')
     fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds, step, Amp, wv, Ly, kc\n")
     fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs))
     for N in Ns:
@@ -84,6 +84,5 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,As,wvs
                                                                         i=i+1
     fscript.close
 
-generate_jobs([32], [64], [1.0], [0.375], [10.0], [1.0], [2.0*24/64.0], [60000], [0.35], [4.0], [1000], [1000], range(1,101), [0.05], [0.15], [12.34], [24.0], [4])
-              #N     Nl    qci     eps      h     hth     Lmax          T        kT       R   pos    for    seeds       step    Amp        wv                                               Ly
-
+generate_jobs([32], [72], [1.0], [0.375], [10.0], [1.0], [2.0*24/72.0], [17200000], [0.1], [2.0], [10000], [10000], range(1,6), [0.0], [0.2], [12.34], [24.0], [8])
+              #N     Nl    qci     eps      h     hth     Lmax              T        kT   R      pos      for    seeds       step        Amp            wv                                      Ly    kc

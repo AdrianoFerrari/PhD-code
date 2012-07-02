@@ -2,10 +2,6 @@
 #define nequil 36000
 
 int main(int argc, char **argv) {
-  pca_time tt;
-  tick(&tt);
-  gsl_set_error_handler_off();
-  
   //variable init
   int s,n;
   double dx, dy, dz, fLx, fRx, kbt, acc_ratio = 0.0;
@@ -16,6 +12,25 @@ int main(int argc, char **argv) {
   char filename[64];
   int i; int ranN;
   bool loop = true;
+  Int n_rxz = 2, n_y = 2;
+  MatDoub lek_z(n_rxz,n_y);
+  VecDoub lek_rxz(n_rxz);
+  VecDoub lek_y(n_y);
+  Bilin_interp lekner(lek_rxz, lek_y, lek_z);
+
+  lek_rxz[0] = 1.0;
+  lek_rxz[1] = 2.0;
+  lek_y[0] = 1.0;
+  lek_y[1] = 2.0;
+  lek_z[0][0] = 0.431643;
+  lek_z[1][0] = 0.172538;
+  lek_z[0][1] = 0.172813;
+  lek_z[1][1] = 0.0793947;
+  
+  Doub rxz, y, lek_u;
+  rxz = 1.2345; y = 1.83;
+  lek_u = lekner.interp(rxz,y);
+  printf("rxz: %f\ty: %f\tlek: %f\n",rxz,y,lek_u);
 
   //default parameters
   int N             = 16;
@@ -90,14 +105,14 @@ int main(int argc, char **argv) {
   //init arrays
   double *q; 
   double **x; double **xn;
-  q = malloc((N+2*Nl)*sizeof(double));
-  x = malloc((N+2*Nl)*sizeof(double *));
-  xn = malloc((N+2*Nl)*sizeof(double *));
+  q = (double *)malloc((N+2*Nl)*sizeof(double));
+  x = (double **)malloc((N+2*Nl)*sizeof(double *));
+  xn = (double **)malloc((N+2*Nl)*sizeof(double *));
 
   for(int i=0;i<N+2*Nl;i++)
     {
-      x[i] = malloc(3*sizeof(double));
-      xn[i] = malloc(3*sizeof(double));
+      x[i] = (double *)malloc(3*sizeof(double));
+      xn[i] = (double *)malloc(3*sizeof(double));
       if(x[i] == NULL || xn[i] == NULL)
 	{ printf("Out of memory\n"); }
     }
@@ -110,14 +125,15 @@ int main(int argc, char **argv) {
   char fname [64];
   FILE *pos;
   if (posOut != 0) {
-    sprintf(fname, "%s.xyz",filename); pos=fopen(fname,"w");
+    sprintf(fname, "%s.xyz",filename); pos=fopen(fname,"a");
   }
   char fnamedata [64];
   FILE *data;
   if (dataOut != 0) {
-    sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"w");
+    sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"a");
     //print headers
     fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\n");
+    fflush(data);
   }
 
 
@@ -159,8 +175,8 @@ int main(int argc, char **argv) {
           xn[i][0] += amp*sin(twoPI*kc*(i-N)/Nl+phi1);
         }
         else {
-          x[i][0]  += amp*sin(twoPI*kc*(i-N)/Nl+phi2);
-          xn[i][0] += amp*sin(twoPI*kc*(i-N)/Nl+phi2);
+          x[i][0]  += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2);
+          xn[i][0] += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2);
         }
       }
     }
@@ -235,6 +251,8 @@ int main(int argc, char **argv) {
       for(i=0;i<N+2*Nl;i++) {
         fprintf(pos,"%d %f %f %f\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2]);
       }
+
+      fflush(pos);
     }
 
     if(dataOut != 0 && s >= nequil && s % dataOut == 0) {
@@ -281,6 +299,8 @@ int main(int argc, char **argv) {
       rms = sqrt(sumsq/Nl);
 
       fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step);
+      
+      fflush(data);
     } //end dataOut
 
   } //end MC loops
@@ -301,5 +321,4 @@ int main(int argc, char **argv) {
   free(x); free(xn); free(q);
 
   printf("%d\t%d\t\n", accepted, N*(s-nequil));
-  tock(&tt);
 }
