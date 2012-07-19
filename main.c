@@ -1,5 +1,5 @@
 #include "functions.c"
-#define nequil 6000
+#define nequil 20000
 
 int main(int argc, char **argv) {
   //variable init
@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
   double sumsq, rms, xL, zL;
   int accepted = 0;
   double De;
+  double totalE;
   char filename[64];
   int i; int ranN;
   bool loop = true;
@@ -123,18 +124,11 @@ int main(int argc, char **argv) {
   if (dataOut != 0) {
     sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"a");
     //print headers
-    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\n");
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\tenergy\n");
     fflush(data);
   }
 
 
-  //initialize particles
-  for(i=0; i<N;i++) {
-    q[i]    = ci_charge*0.1;
-    x[i][0] = xn[i][0] = ran_xz(R);
-    x[i][1] = xn[i][1] = ran_y(Ly);
-    x[i][2] = xn[i][2] = ran_xz(0.5*R);
-  }
 
   //initialize perturbed chains
   if(kc != 0) {
@@ -189,6 +183,17 @@ int main(int argc, char **argv) {
     }
   }
 
+  //initialize particles
+  do {
+    for(i=0; i<N;i++) {
+      q[i]    = ci_charge*0.1;
+
+      x[i][0] = xn[i][0] = ran_xz(R);
+      x[i][1] = xn[i][1] = ran_y(Ly);
+      x[i][2] = xn[i][2] = ran_xz(R);
+    }
+  } while (isfinite(energy(x,q,ep,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
+
   //MC loop
   for(s = 0; s < T; s++) {
     for(n = 0; n < N+2*Nl; n++) {
@@ -199,16 +204,19 @@ int main(int argc, char **argv) {
       if( ranN >= N && s < nequil ) { //freeze chain particles before neq
         dx = 0.0; dy = 0.0; dz = 0.0;
       }
+  
+      if(ranN < N) {
+        xn[ranN][0] += step*dx;
+        xn[ranN][1] += step*dy;
+        xn[ranN][2] += step*dz;
+      } else {
+        xn[ranN][0] += step*dx*0.1;
+        xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy*0.1;
+        xn[ranN][2] += step*dz*0.1;
+      }
 
-      xn[ranN][0] += ranN < N               ? step*dx : step*dx*0.01;
-      xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0     : step*dy;
-      xn[ranN][2] += ranN < N               ? step*dz : step*dz*0.01;
-
-      if(xn[ranN][1] < 0.0) xn[ranN][1] += Ly;
-      else if(xn[ranN][1] > Ly) xn[ranN][1] -= Ly;
-      
       De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl,Ly,lekner);
-      
+
       if(De < 0 || exp(-De/kbt) > ran_u()) {
         if(s >= nequil) accepted += 1;
         x[ranN][0] = xn[ranN][0];
@@ -231,9 +239,6 @@ int main(int argc, char **argv) {
           q[i] = qL*(0.1+0.9*s/(1.0*(nequil-100)));
         }
       }
-#ifdef DEBUG
-      printf("qci: %f, qL: %f\n",q[0],q[N]);
-#endif
     }
     
     if(posOut != 0 && s >= nequil && s % posOut == 0) {
@@ -254,6 +259,10 @@ int main(int argc, char **argv) {
       zL  = 0.0;
       rms  = 0.0;
       sumsq= 0.0;
+      totalE = 0.0;
+
+      //calculate total energy
+      totalE = energy(x,q,ep,h,htheta,Lmax,N,Nl,Ly,lekner);
 
       //calculate forces
       for(int i=0; i<N+2*Nl; i++) {
@@ -289,7 +298,7 @@ int main(int argc, char **argv) {
       }
       rms = sqrt(sumsq/Nl);
 
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step);
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step,totalE);
       
       fflush(data);
     } //end dataOut

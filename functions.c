@@ -1,7 +1,7 @@
 #include "main.h"
 
 double dist(double y1, double y0, double Ly) {
-  return Ly*fabs(fabs(y1-y0)/Ly-floor(fabs(y1-y0)/Ly+0.5));
+  return fabs((y1-y0)-Ly*round((y1-y0)/Ly));
 }
 bool on_chain(int i,int N) {
   if (i < N) { return false; }
@@ -12,6 +12,49 @@ bool is_endpoint(int i,int N,int Nl) {
     return true;
   }
   else {return false;}
+}
+double energy(double **x, double *q, double ep, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
+  double totalE = 0.0;
+
+  for (int i = 0; i < N+2*Nl; i++) {
+    for (int j = i+1; j < N+2*Nl; j++) {
+      double lek = 0; double rep = 0; double spring = 0;
+      double uy = 1.0/Ly;
+      double rxz, r, y;
+    
+      rxz = sqrt((x[i][0]-x[j][0])*(x[i][0]-x[j][0]) + (x[i][2]-x[j][2])*(x[i][2]-x[j][2]));
+      y   = dist(x[i][1],x[j][1],Ly);
+      r   = sqrt(rxz*rxz+y*y);
+      
+      lek = q[i]*q[j]*lekner.interp(rxz,y);
+      
+      if(j>=N && i>=N) {
+        if(r <= Ly/(3.0*Nl)) {
+          rep = INFINITY;
+        }
+        else {
+          rep = 0.0;
+        }
+      }
+      else {
+        if(r <= ep) {
+          rep = INFINITY;
+        }
+        else {
+          rep = 0.0;
+        }
+      }
+
+      if(linked(i,j,N,Nl) || linked(j,i,N,Nl)) {
+        if (r >= Lmax) { spring = INFINITY; }
+        else { spring = -0.5*h*Lmax*Lmax*log(1-r*r/(Lmax*Lmax)); }
+      }
+    
+    totalE += lek + rep + spring;
+    }
+  }
+
+  return totalE;
 }
 double theta_du(double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xn, double yn, double zn, double Ly){
   double ao = sqrt( (x0-xp)*(x0-xp) + dist(y0,yp,Ly)*dist(y0,yp,Ly) + (z0-zp)*(z0-zp) );
@@ -57,12 +100,12 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
-      lek += q[n]*q[i]*lekner.interp(rxz,y);
+      lek = q[n]*q[i]*lekner.interp(rxz,y);
       
       //---Repulsive E
       if(n>=N && i>=N) {
         if(r <= Ly/(3.0*Nl)) {
-          rep = 10e30;
+          rep = INFINITY;
         }
         else {
           rep = 0.0;
@@ -70,7 +113,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       }
       else {
         if(r <= ep) {
-          rep = 10e30;
+          rep = INFINITY;
         }
         else {
           rep = 0.0;
@@ -79,7 +122,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 
       //---Spring E
       if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-        if (r >= Lmax) { spring = 10e30; }
+        if (r >= Lmax) { spring = INFINITY; }
         else { spring = -0.5*h*Lmax*Lmax*log(1-r*r/(Lmax*Lmax)); }
       }
       
@@ -93,12 +136,12 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
-      lek += q[n]*q[i]*lekner.interp(rxz,y);
+      lek = q[n]*q[i]*lekner.interp(rxz,y);
       
       //---Repulsive E
       if(n>=N && i>=N) {
         if(r <= Ly/(3.0*Nl)) {
-          rep = 10e30;
+          rep = INFINITY;
         }
         else {
           rep = 0.0;
@@ -106,7 +149,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       }
       else {
         if(r <= ep) {
-          rep = 10e30;
+          rep = INFINITY;
         }
         else {
           rep = 0.0;
@@ -115,14 +158,14 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
 
       //---Spring E
       if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-        if (r >= Lmax) { spring = 10e30; }
+        if (r >= Lmax) { spring = INFINITY; }
         else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
       }
       
       //---Sum old E
       new_e = lek + rep + spring;
       
-       //-DELTA E
+      //-DELTA E
       delta_e += new_e - old_e;
     }
   }
