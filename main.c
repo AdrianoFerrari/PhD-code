@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
   int dataOut      = 1000;
   int seed          = 1;
   double step       = 0.03;
+  double stepChain  = 0.003;
   double turns      = 0.0;
   double amp        = 0.0;
   double wv         = 0.0;
@@ -75,6 +76,8 @@ int main(int argc, char **argv) {
       seed     = atoi(argv[++i]);
     else if ( strcmp(argv[i], "-D") == 0 )
       step     = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-Dc") == 0 )
+      stepChain= atof(argv[++i]);
     else if ( strcmp(argv[i], "-tr") == 0 )
       step     = atof(argv[++i]);
     else if ( strcmp(argv[i], "-f") == 0 )
@@ -91,8 +94,10 @@ int main(int argc, char **argv) {
  
   //inits
   double qL = -0.5*N*ci_charge/(1.0*Nl);
-  if(step == 0.0)
+  if(step == 0.0) {
     step       = 0.00075+0.0084*exp((kf-0.02842)/0.0326);
+    stepChain  = step*0.01;
+  }
 
   //init arrays
   double *q; 
@@ -124,7 +129,7 @@ int main(int argc, char **argv) {
   if (dataOut != 0) {
     sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"a");
     //print headers
-    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\tenergy\n");
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\tstepC\tenergy\n");
     fflush(data);
   }
 
@@ -188,9 +193,9 @@ int main(int argc, char **argv) {
     for(i=0; i<N;i++) {
       q[i]    = ci_charge*0.1;
 
-      x[i][0] = xn[i][0] = ran_xz(R);
+      x[i][0] = xn[i][0] = ran_xz(1.5*R);
       x[i][1] = xn[i][1] = ran_y(Ly);
-      x[i][2] = xn[i][2] = ran_xz(R);
+      x[i][2] = xn[i][2] = ran_xz(1.5*R);
     }
   } while (isfinite(energy(x,q,ep,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
 
@@ -198,7 +203,12 @@ int main(int argc, char **argv) {
   for(s = 0; s < T; s++) {
     for(n = 0; n < N+2*Nl; n++) {
       kbt = kf;
-      ranN = ran_particle(N+2*Nl);
+
+      if(stepChain == 0.0)
+        ranN = ran_particle(N);
+      else
+        ranN = ran_particle(N+2*Nl);
+
       dx = ran_du(); dy = ran_du(); dz = ran_du();
 
       if( ranN >= N && s < nequil ) { //freeze chain particles before neq
@@ -210,9 +220,9 @@ int main(int argc, char **argv) {
         xn[ranN][1] += step*dy;
         xn[ranN][2] += step*dz;
       } else {
-        xn[ranN][0] += step*dx*0.1;
-        xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : step*dy*0.1;
-        xn[ranN][2] += step*dz*0.1;
+        xn[ranN][0] += stepChain*dx;
+        xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : stepChain*dy;
+        xn[ranN][2] += stepChain*dz;
       }
 
       De = delta_u(x,xn,q,ranN,ep,h,htheta,Lmax,N,Nl,Ly,lekner);
@@ -298,7 +308,7 @@ int main(int argc, char **argv) {
       }
       rms = sqrt(sumsq/Nl);
 
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step,totalE);
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step,stepChain,totalE);
       
       fflush(data);
     } //end dataOut
