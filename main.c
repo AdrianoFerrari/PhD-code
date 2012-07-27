@@ -189,6 +189,7 @@ int main(int argc, char **argv) {
   }
 
   //initialize particles
+  int w = 0;
   do {
     for(i=0; i<N;i++) {
       q[i]    = ci_charge*0.1;
@@ -197,7 +198,8 @@ int main(int argc, char **argv) {
       x[i][1] = xn[i][1] = ran_y(Ly);
       x[i][2] = xn[i][2] = ran_xz(1.5*R);
     }
-  } while (isfinite(energy(x,q,ep,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
+    w++;
+  } while (w < 5000 && isfinite(energy(x,q,ep,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
 
   //MC loop
   for(s = 0; s < T; s++) {
