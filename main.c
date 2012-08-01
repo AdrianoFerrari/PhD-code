@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
     else if ( strcmp(argv[i], "-Dc") == 0 )
       stepChain= atof(argv[++i]);
     else if ( strcmp(argv[i], "-tr") == 0 )
-      step     = atof(argv[++i]);
+      turns    = atof(argv[++i]);
     else if ( strcmp(argv[i], "-f") == 0 )
       strcpy(filename,argv[++i]); 
     else if ( strcmp(argv[i], "-A") == 0 )
@@ -168,6 +168,22 @@ int main(int argc, char **argv) {
           x[i][0]  += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2);
           xn[i][0] += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2);
         }
+      }
+    }
+  }
+  else if(turns != 0.0) {
+    for(i=N; i < N+2*Nl; i++) {
+      if(i < N+Nl) {
+        q[i]    = qL*0.1;
+        x[i][0] = xn[i][0] = 0.5*R*sin(twoPI*turns*(i-N)/Nl);
+        x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
+        x[i][2] = xn[i][2] = 0.5*R*cos(twoPI*turns*(i-N)/Nl);
+      }
+      else {
+        q[i]    = qL*0.1;
+        x[i][0] = xn[i][0] = 0.5*R*sin(twoPI*turns*(i-N-Nl)/Nl + PI);
+        x[i][1] = xn[i][1] =  (i-N-Nl)*Ly/Nl;
+        x[i][2] = xn[i][2] = 0.5*R*cos(twoPI*turns*(i-N-Nl)/Nl + PI);
       }
     }
   }

@@ -3,7 +3,7 @@ import random
 def de(value):
     return str(value).replace(".","_")
 
-def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,A,wv,Ly,kc):
+def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,Ly,kc):
     f = open('ompjob' + str(i) + '.pbs', 'w')
 
     args = ""
@@ -36,6 +36,8 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,A,wv,Ly,kc):
         args += "-D " + str(dx) + " "
     if dxc != 0.003:
         args += "-Dc " + str(dxc) + " "
+    if tr != 0.0:
+        args += "-tr " + str(tr) + " "
     if A != 0.0:
         args += "-A " + str(A) + " "
     if wv != 0.0:
@@ -51,7 +53,7 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,A,wv,Ly,kc):
 
     args += "-s " + str(random.randint(0,9999999999))
 
-    filename = "force1_" + str(i)
+    filename = "energyR2_" + str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     #s += "#PBS -q debug\n"
     s += "#PBS -l nodes=1:ppn=8,walltime=00:15:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=8\n"
@@ -59,11 +61,11 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,A,wv,Ly,kc):
     f.write(s)
     f.close
 
-def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,As,wvs,Lys,kcs):
+def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,trs,As,wvs,Lys,kcs):
     i = 0
-    fscript = open('force1_job_data','w')
-    fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds,step, stepc, Amp, wv, Ly, kc\n")
-    fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(dxcs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs))
+    fscript = open('energyR2_job_data','w')
+    fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds,step, stepc, trs, Amp, wv, Ly, kc\n")
+    fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(dxcs)+', '+str(trs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs))
     for N in Ns:
         for Nl in Nls:
             for charge in charges:
@@ -79,15 +81,15 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,A
                                                   for sd in sds:
                                                       for dx in dxs:
                                                         for dxc in dxcs:
+                                                          for tr in trs:
                                                             for A in As:
                                                                 for wv in wvs:
                                                                     for Ly in Lys:
                                                                         for kc in kcs:
-                                                                          create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,A,wv,Ly,kc)
+                                                                          create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,Ly,kc)
                                                                         i=i+1
     fscript.close
 
-# generate_jobs([32], [72], [1.0], [0.375], [10.0], [1.0], [2.0*24/72.0], [4000000], [0.01], [4.0], [2000], [6000], range(1,11), [0.0], [0.2], [24.0,12.0,8.0, 6.0, 4.8, 4.0, 3.4285714286, 3.0], [24.0], [8])
-              #N     Nl    qci     eps      h     hth     Lmax             T      kT       R      pos      for    seeds    step  stepC       Amp            wv                                    Ly    kc
-# steps 10: generate_jobs([128], [128], [1.0], [0.375], [10.0], [1.0], [1.1*48/128.0], [25000], [0.001], [2.0], [1000], [100], range(1,11), [0.03], [0.0002], [0.1], [48/1.0, 48/2.0, 48/3.0, 48/4.0, 48/5.0, 48/6.0, 48/7.0, 48/8.0, 48/9.0, 48/10.0, 48/11.0, 48/12.0, 48/13.0, 48/14.0, 48/15.0, 48/16.0], [48.0], [0])
-generate_jobs([64], [64], [1.0], [0.375], [0.2], [0.0], [1.1*24/64.0], [20451], [0.001], [1.5,2.0,3.0,4.0,6.0], [100], [10], range(1,21), [0.03], [0.0], [0.0], [12.34], [24.0], [0])
+generate_jobs([32], [32], [1.0], [0.375], [0.2], [0.0], [2.0*12/32.0], [28000], [0.02], [0.9,1.0,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,2.7,2.8,2.9,3.0], [1000], [100], range(1,16), [0.03], [0.0], [0.0], [0.0], [12.34], [12.0], [0])
+# generate_jobs([32], [32], [1.0], [0.375], [0.2], [0.0], [1.1*12.0/32.0], [21000], [0.002], [0.5,0.75,1.0,1.25,1.5,1.75,2.0,2.25,2.5,2.75,3.0], [1000], [10], range(1,31), [0.03], [0.0], [0.0], [12.34], [12.0], [0])
+              #N     Nl    qci     eps      h     hth     Lmax             T      kT       R                                                                                                          pos    for    seeds       step  stepC  turns Amp    wv Ly    kc
