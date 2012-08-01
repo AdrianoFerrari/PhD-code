@@ -26,19 +26,21 @@ double energy(double **x, double *q, double ep, double h, double htheta, double 
       y   = dist(x[i][1],x[j][1],Ly);
       r   = sqrt(rxz*rxz+y*y);
       
-      lek = q[i]*q[j]*lekner.interp(rxz,y);
+      lek = 2.0*q[i]*q[j]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
       
       if(j>=N && i>=N) {
-        if(r <= Ly/(3.0*Nl)) {
-          rep = INFINITY;
+        if(r <= 0.168369) {
+          double sigma_r_6 = pow(0.15/r,6);
+          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
           rep = 0.0;
         }
       }
       else {
-        if(r <= ep) {
-          rep = INFINITY;
+        if(r <= 0.336739) {
+          double sigma_r_6 = pow(0.30/r,6);
+          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
           rep = 0.0;
@@ -100,20 +102,22 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
-      lek = q[n]*q[i]*lekner.interp(rxz,y);
+      lek = 2.0*q[n]*q[i]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
       
       //---Repulsive E
       if(n>=N && i>=N) {
-        if(r <= Ly/(3.0*Nl)) {
-          rep = INFINITY;
+        if(r <= 0.168369) {
+          double sigma_r_6 = pow(0.15/r,6);
+          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
           rep = 0.0;
         }
       }
       else {
-        if(r <= ep) {
-          rep = INFINITY;
+        if(r <= 0.336739) {
+          double sigma_r_6 = pow(0.30/r,6);
+          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
           rep = 0.0;
@@ -136,20 +140,22 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
-      lek = q[n]*q[i]*lekner.interp(rxz,y);
+      lek = 2.0*q[n]*q[i]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
       
       //---Repulsive E
       if(n>=N && i>=N) {
-        if(r <= Ly/(3.0*Nl)) {
-          rep = INFINITY;
+        if(r <= 0.168369) {
+          double sigma_r_6 = pow(0.15/r,6);
+          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
           rep = 0.0;
         }
       }
       else {
-        if(r <= ep) {
-          rep = INFINITY;
+        if(r <= 0.336739) {
+          double sigma_r_6 = pow(0.30/r,6);
+          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
           rep = 0.0;
