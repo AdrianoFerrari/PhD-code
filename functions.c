@@ -13,7 +13,7 @@ bool is_endpoint(int i,int N,int Nl) {
   }
   else {return false;}
 }
-double energy(double **x, double *q, double ep, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
+double energy(double **x, double *q, double ep, double sigma, double sigma_c, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
   double totalE = 0.0;
 
   for (int i = 0; i < N+2*Nl; i++) {
@@ -29,8 +29,8 @@ double energy(double **x, double *q, double ep, double h, double htheta, double 
       lek = 2.0*q[i]*q[j]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
       
       if(j>=N && i>=N) {
-        if(r <= 0.168369) {
-          double sigma_r_6 = pow(0.15/r,6);
+        if(r <= 1.12246*sigma_c) {
+          double sigma_r_6 = pow(sigma_c/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
@@ -38,8 +38,8 @@ double energy(double **x, double *q, double ep, double h, double htheta, double 
         }
       }
       else {
-        if(r <= 0.336739) {
-          double sigma_r_6 = pow(0.30/r,6);
+        if(r <= 1.12246*sigma) {
+          double sigma_r_6 = pow(sigma/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
@@ -76,7 +76,7 @@ double theta_du(double x1, double y1, double z1, double x0, double y0, double z0
   
   return th1*th1-th0*th0-twoPI*(th1-th0);
 }
-double delta_u(double **x, double **xn, double *q, int n, double ep, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
+double delta_u(double **x, double **xn, double *q, int n, double ep, double sigma, double sigma_c, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
   double x1 = xn[n][0];
   double y1 = xn[n][1];
   double z1 = xn[n][2];
@@ -106,8 +106,8 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       
       //---Repulsive E
       if(n>=N && i>=N) {
-        if(r <= 0.168369) {
-          double sigma_r_6 = pow(0.15/r,6);
+        if(r <= 1.12246*sigma_c) {
+          double sigma_r_6 = pow(sigma_c/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
@@ -115,8 +115,8 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
         }
       }
       else {
-        if(r <= 0.336739) {
-          double sigma_r_6 = pow(0.30/r,6);
+        if(r <= 1.12246*sigma) {
+          double sigma_r_6 = pow(sigma/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
@@ -144,8 +144,8 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
       
       //---Repulsive E
       if(n>=N && i>=N) {
-        if(r <= 0.168369) {
-          double sigma_r_6 = pow(0.15/r,6);
+        if(r <= 1.12246*sigma_c) {
+          double sigma_r_6 = pow(sigma_c/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
@@ -153,8 +153,8 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double h, d
         }
       }
       else {
-        if(r <= 0.336739) {
-          double sigma_r_6 = pow(0.30/r,6);
+        if(r <= 1.12246*sigma) {
+          double sigma_r_6 = pow(sigma/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
         }
         else {
