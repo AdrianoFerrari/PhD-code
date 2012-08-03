@@ -1,7 +1,12 @@
 #include "main.h"
 
-double dist(double y1, double y0, double Ly) {
-  return fabs((y1-y0)-Ly*round((y1-y0)/Ly));
+double dist(double y10, double Ly) {
+  if(y10 >= 0 && y10 <= 0.5*Ly)
+    return y10;
+  else if(y10 >= -0.5*Ly && y10 < 0)
+    return -y10;
+  else
+    return fabs(y10-Ly*round(y10/Ly));
 }
 bool on_chain(int i,int N) {
   if (i < N) { return false; }
@@ -23,7 +28,7 @@ double energy(double **x, double *q, double ep, double sigma, double sigma_c, do
       double rxz, r, y;
     
       rxz = sqrt((x[i][0]-x[j][0])*(x[i][0]-x[j][0]) + (x[i][2]-x[j][2])*(x[i][2]-x[j][2]));
-      y   = dist(x[i][1],x[j][1],Ly);
+      y   = dist(x[i][1]-x[j][1],Ly);
       r   = sqrt(rxz*rxz+y*y);
       
       lek = 2.0*q[i]*q[j]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
@@ -59,11 +64,11 @@ double energy(double **x, double *q, double ep, double sigma, double sigma_c, do
   return totalE;
 }
 double theta_du(double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xn, double yn, double zn, double Ly){
-  double ao = sqrt( (x0-xp)*(x0-xp) + dist(y0,yp,Ly)*dist(y0,yp,Ly) + (z0-zp)*(z0-zp) );
-  double bo = sqrt( (x0-xn)*(x0-xn) + dist(y0,yn,Ly)*dist(y0,yn,Ly) + (z0-zn)*(z0-zn) );
-  double c2 = (xn-xp)*(xn-xp) + dist(yn,yp,Ly)*dist(yn,yp,Ly) + (zn-zp)*(zn-zp);
-  double an = sqrt( (x1-xp)*(x1-xp) + dist(y1,yp,Ly)*dist(y1,yp,Ly) + (z1-zp)*(z1-zp) );
-  double bn = sqrt( (x1-xn)*(x1-xn) + dist(y1,yn,Ly)*dist(y1,yn,Ly) + (z1-zn)*(z1-zn) );
+  double ao = sqrt( (x0-xp)*(x0-xp) + dist(y0-yp,Ly)*dist(y0-yp,Ly) + (z0-zp)*(z0-zp) );
+  double bo = sqrt( (x0-xn)*(x0-xn) + dist(y0-yn,Ly)*dist(y0-yn,Ly) + (z0-zn)*(z0-zn) );
+  double c2 = (xn-xp)*(xn-xp) + dist(yn-yp,Ly)*dist(yn-yp,Ly) + (zn-zp)*(zn-zp);
+  double an = sqrt( (x1-xp)*(x1-xp) + dist(y1-yp,Ly)*dist(y1-yp,Ly) + (z1-zp)*(z1-zp) );
+  double bn = sqrt( (x1-xn)*(x1-xn) + dist(y1-yn,Ly)*dist(y1-yn,Ly) + (z1-zn)*(z1-zn) );
 
   double cos_th0 = (ao*ao+bo*bo-c2)/(2.0*ao*bo);
   double cos_th1 = (an*an+bn*bn-c2)/(2.0*an*bn);
@@ -98,7 +103,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
     
         //-OLD config energy
       rxz = sqrt((x[i][0]-x0)*(x[i][0]-x0) + (x[i][2]-z0)*(x[i][2]-z0));
-      y   = dist(x[i][1],y0,Ly);
+      y   = dist(x[i][1]-y0,Ly);
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
@@ -136,7 +141,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
         //-NEW config energy
       lek = rep = spring = 0;
       rxz = sqrt((xn[i][0]-x1)*(xn[i][0]-x1) + (xn[i][2]-z1)*(xn[i][2]-z1));
-      y   = dist(xn[i][1],y1,Ly);
+      y   = dist(xn[i][1]-y1,Ly);
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
@@ -209,7 +214,7 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   fxz = 0.0;
   x   = (x0-x1);
   rxz = sqrt(x*x + (z0-z1)*(z0-z1));
-  y   = dist(y0,y1,Ly);
+  y   = dist(y0-y1,Ly);
   r   = sqrt(rxz*rxz+y*y);
   if(rxz == 0.0 && y != 0.0) { return 0.0;}
   if(rxz == 0.0 && y == 0.0) { return NAN;}
@@ -224,7 +229,7 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
 // Replusive force_x on particle 0 by particle 1
 double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, double z1, double Ly) {
   double x = (x0-x1);
-  double r = sqrt( x*x + dist(y0,y1,Ly)*dist(y0,y1,Ly) + (z0-z1)*(z0-z1) );
+  double r = sqrt( x*x + dist(y0-y1,Ly)*dist(y0-y1,Ly) + (z0-z1)*(z0-z1) );
   if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
     return 12.0*ep*x/pow(r,14);
   }
@@ -235,7 +240,7 @@ double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, 
 // Spring force_x on particle 0 by particle 1
 double spring_fx(double h, double Lmax, double x0, double y0, double z0, double x1, double y1, double z1, double Ly) {
   double x = (x0-x1);
-  double r = sqrt( x*x + dist(y0,y1,Ly)*dist(y0,y1,Ly) + (z0-z1)*(z0-z1) );
+  double r = sqrt( x*x + dist(y0-y1,Ly)*dist(y0-y1,Ly) + (z0-z1)*(z0-z1) );
   if(r < Lmax) { return -1.0*h*x/(1-r*r/(Lmax*Lmax)); }
   else { return 0.0; }
 }
