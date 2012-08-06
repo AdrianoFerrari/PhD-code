@@ -57,17 +57,17 @@ def create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,Ly,kc,
 
     args += "-s " + str(random.randint(0,9999999999))
 
-    filename = "speedTests_" + str(i)
+    filename = "cond9_" + str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
-    s += "#PBS -q debug\n"
+    #s += "#PBS -q debug\n"
     s += "#PBS -l nodes=1:ppn=8,walltime=00:05:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=8\n"
-    s = s + "./main.exe " + args + " -f " + filename
+    s = s + "./main.exe " + args + " -f " + filename + "\n"
     f.write(s)
     f.close
 
 def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,trs,As,wvs,Lys,kcs,sigs,sigcs):
     i = 0
-    fscript = open('speedTests_job_data','w')
+    fscript = open('cond9_job_data','w')
     fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds,step, stepc, trs, Amp, wv, Ly, kc, speed, speedC\n")
     fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(dxcs)+', '+str(trs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs)+', '+str(sigs)+', '+str(sigcs))
     N = Ns[0]
@@ -96,5 +96,5 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,t
                                                                         i=i+1
     fscript.close
 
-generate_jobs([32], [32], [1.0], [1.0], [0.2], [0.0], [2.0*12/32.0], [28000], [0.1], [1.4], [1000], [1000], range(1,4), [0.03], [0.002,0.0002], [0.0], [0.0], [12.34], [12.0], [0], [0.3,2.0],[0.15])
-              #N     Nl    qci     eps      h     hth     Lmax             T      kT     R     pos    for    seeds       step    stepC    turns  Amp    wv Ly    kc
+generate_jobs([40], [20], [1.0,2.0], [1.0], [1.0], [1.0], [0.4], [23000], [1.409], [0.1,0.15,0.2,0.3,0.4,0.5,0.6,0.7,0.25,0.35,0.45,0.55,0.65], [1000], [100], range(1,61), [0.01], [0.0], [0.0], [0.0], [12.34], [6.8], [0], [0.18],[0.18])
+              #N     Nl    qci    eps     h     hth     Lmax     T      kT         R                                      os       for    seeds       step  stepC  turns  Amp    wv         Ly    kc          sig         sigc
