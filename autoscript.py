@@ -70,30 +70,32 @@ def generate_jobs(Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,t
     fscript = open('cond9_job_data','w')
     fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds,step, stepc, trs, Amp, wv, Ly, kc, speed, speedC\n")
     fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(dxcs)+', '+str(trs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs)+', '+str(sigs)+', '+str(sigcs))
-    N = Ns[0]
-    Nl = Nls[0]
-    for charge in charges:
-        for ep in eps:
+
+    T = Ts[0]
+    Po = Pos[0]
+    Fo = Fos[0]
+    for N in Ns:
+      for Nl in Nls:
+        for charge in charges:
+          for ep in eps:
             for h in hs:
-                for ht in hts:
-                    for r0 in r0s:
-                        for T in Ts:
-                            for tF in tFs:
-                                for Po in Pos:
-                                    for Fo in Fos:
-                                      for R in Rs:
-                                          for sd in sds:
-                                              for dx in dxs:
-                                                for dxc in dxcs:
-                                                  for tr in trs:
-                                                    for A in As:
-                                                        for wv in wvs:
-                                                            for Ly in Lys:
-                                                                for kc in kcs:
-                                                                  for sig in sigs:
-                                                                    for sigc in sigcs:
-                                                                        create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,Ly,kc,sig,sigc)
-                                                                        i=i+1
+              for ht in hts:
+                for r0 in r0s:
+                  for tF in tFs:
+                    for R in Rs:
+                      for sd in sds:
+                        for dx in dxs:
+                          for dxc in dxcs:
+                            for tr in trs:
+                              for A in As:
+                                for wv in wvs:
+                                  for Ly in Lys:
+                                    for kc in kcs:
+                                      for sig in sigs:
+                                        for sigc in sigcs:
+                                          if(True):
+                                            create_script(i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,Ly,kc,sig,sigc)
+                                            i=i+1
     fscript.close
 
 generate_jobs([40], [20], [1.0,2.0], [1.0], [1.0], [1.0], [0.4], [23000], [1.409], [0.1,0.15,0.2,0.3,0.4,0.5,0.6,0.7,0.25,0.35,0.45,0.55,0.65], [1000], [100], range(1,61), [0.01], [0.0], [0.0], [0.0], [12.34], [6.8], [0], [0.18],[0.18])
