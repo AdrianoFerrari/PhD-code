@@ -4,9 +4,9 @@
 int main(int argc, char **argv) {
   //variable init
   int s,n;
-  double dx, dy, dz, fLx, fRx, kbt;
+  double dx, dy, dz, fLx, fRx, Ro, kbt;
   double fLprev=0.0, fRprev=0.0;
-  double sumsq, rms, xL, zL;
+  double sumsq, rms, xL, zL, xR, zR;
   int accepted = 0;
   double De;
   double totalE;
@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
   if (dataOut != 0) {
     sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"a");
     //print headers
-    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfLx\tfRx\tRl\tA\twv\tA0\tstep\tstepC\tenergy\tsigma\tsigma_c\n");
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfx\tRl\tRo\tA\twv\tA0\tstep\tstepC\tenergy\tsigma\tsigma_c\n");
     fflush(data);
   }
 
@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
         xn[ranN][2] += step*dz;
       } else {
         xn[ranN][0] += stepChain*dx;
-        xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : stepChain*dy;
+        xn[ranN][1] += stepChain*dy;
         xn[ranN][2] += stepChain*dz;
       }
 
@@ -316,19 +316,24 @@ int main(int argc, char **argv) {
       fRprev = fRx;
 
       
-      //calculate average position of left line
+      //calculate average position of lines
       for(int i=N; i<N+Nl; i++) {
         xL += x[i][0]/Nl;
         zL += x[i][2]/Nl;
       }
+      for(int i=N+Nl; i<N+2*Nl; i++) {
+        xR += x[i][0]/Nl;
+        zR += x[i][2]/Nl;
+      }
+      Ro = sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL));
 
       //calculate rms amplitude of left line
       for(int i=N; i<N+Nl; i++) {
         sumsq += (x[i][0]-xL)*(x[i][0]-xL);
       }
-      rms = sqrt(sumsq/Nl);
+      rms = sqrt(2.0*sumsq/Nl);
 
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, fLx, fRx, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
       
       fflush(data);
     } //end dataOut

@@ -1,72 +1,74 @@
-import autoscript
+from autoscript import *
 
-autoscript.generate_jobs(
-# name head
-  "stabReal1",
+generate_jobs(
+# name
+  "stab1",
+# conditions
+  "(N == 20 and charge == 2.0) or (N == 40 and charge == 1.0)",
 
-# N
-  [40],
+# Ns
+  [20,40],
 
-# N
+# Nls
   [20],
 
-# N
+# charges
   [1.0,2.0],
 
-# N
+# eps
+  [1000.0],
+
+# hs
   [1.0],
 
-# N
+# hths
   [1.0],
 
-# N
-  [1.0],
-
-# N
+# Lmaxs
   [0.4],
 
-# N
-  [23000],
+# T ----
+  [21000],
 
-# N
+# kTs
   [1.409],
 
-# N
-  [0.1,0.15,0.2,0.3,0.4,0.5,0.6,0.7,0.25,0.35,0.45,0.55,0.65],
+# Rs
+  [0.5],
 
-# N
-  [1000],
-
-# N
+# Po ----
   [100],
 
-# N
-  range(1,61),
+# Fo ----
+  [10],
 
-# N
+# seeds
+  range(1,11),
+
+# Dxs
   [0.01],
 
-# N
+# Dxcs
+  [0.01],
+
+# turns
   [0.0],
 
-# N
-  [0.0],
+# Amps
+  [0.1],
 
-# N
-  [0.0],
+# wavelengths
+  [6.8/1,6.8/2,6.8/3,6.8/4,6.8/5,6.8/9,6.8/10,6.8/11,6.8/12],
 
-# N
-  [12.34],
-
-# N
+# Lys
   [6.8],
 
-# N
+# kcs
   [0],
 
-# N
+# sigma particles
   [0.18],
 
-# N
+# sigma chain-chain
   [0.18]
 )

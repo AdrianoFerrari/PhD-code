@@ -57,7 +57,7 @@ def create_script(name,i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,L
 
     args += "-s " + str(random.randint(0,9999999999))
 
-    filename = name + str(i)
+    filename = name +"_"+ str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     #s += "#PBS -q debug\n"
     s += "#PBS -l nodes=1:ppn=8,walltime=00:05:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=8\n"
@@ -65,11 +65,12 @@ def create_script(name,i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,L
     f.write(s)
     f.close
 
-def generate_jobs(name,Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,trs,As,wvs,Lys,kcs,sigs,sigcs):
+def generate_jobs(name,conditions,Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,dxcs,trs,As,wvs,Lys,kcs,sigs,sigcs):
     i = 0
     fscript = open(name+'_job_data','w')
     fscript.writelines("N, Nl, qci, eps, h, hth, Lmax, T, kT, R, pos, for, seeds,step, stepc, trs, Amp, wv, Ly, kc, speed, speedC\n")
     fscript.writelines( str(Ns)+', '+str(Nls)+', '+str(charges)+', '+str(eps)+', '+str(hs)+', '+str(hts)+', '+str(r0s)+', '+str(Ts)+', '+str(tFs)+', '+str(Rs)+', '+str(Pos)+', '+str(Fos)+', '+str(sds)+', '+str(dxs)+', '+str(dxcs)+', '+str(trs)+', '+str(As)+', '+str(wvs)+', '+str(Lys)+', '+str(kcs)+', '+str(sigs)+', '+str(sigcs))
+    fscript.writelines(conditions)
 
     T = Ts[0]
     Po = Pos[0]
@@ -93,7 +94,7 @@ def generate_jobs(name,Ns,Nls,charges,eps,hs,hts,r0s,Ts,tFs,Rs,Pos,Fos,sds,dxs,d
                                     for kc in kcs:
                                       for sig in sigs:
                                         for sigc in sigcs:
-                                          if(True):
+                                          if(eval(conditions)):
                                             create_script(name,i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,Ly,kc,sig,sigc)
                                             i=i+1
     fscript.close
