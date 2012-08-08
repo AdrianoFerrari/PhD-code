@@ -90,65 +90,43 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
   double z0 = x[n][2];
 
   double uy = 1.0/Ly;
-  double new_e, old_e, lek, rep, spring, rxz, y, r;
+  double lek_o, rep_o, spring_o, rxz_o, y_o, r_o, lek, rep, spring, rxz, y, r;
 
   double delta_e = 0.0;
 
-#pragma omp parallel for private(new_e, old_e, lek, rep, spring, rxz, y, r) reduction(+:delta_e)
+#pragma omp parallel for private(lek_o, rep_o, spring_o, rxz_o, y_o, r_o, lek, rep, spring, rxz, y, r) reduction(+:delta_e)
   for (int i = 0; i < N+2*Nl; i++) {
     if(i!=n) {
-      double new_e, old_e;
-      double lek = 0; double rep = 0; double spring = 0;
+      lek_o = 0; rep_o = 0; spring_o = 0;
+      lek = 0; rep = 0; spring = 0;
+      double rxz_o, y_o, r_o;
       double rxz, y, r;
     
-        //-OLD config energy
-      rxz = sqrt((x[i][0]-x0)*(x[i][0]-x0) + (x[i][2]-z0)*(x[i][2]-z0));
-      y   = dist(x[i][1]-y0,Ly);
-      r   = sqrt(rxz*rxz+y*y);
-      
-      //---Lekner E
-      lek = 2.0*q[n]*q[i]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
-      
-      //---Repulsive E
-      if(n>=N && i>=N) {
-        if(r <= 1.12246*sigma_c) {
-          double sigma_r_6 = pow(sigma_c/r,6);
-          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
-        }
-        else {
-          rep = 0.0;
-        }
-      }
-      else {
-        if(r <= 1.12246*sigma) {
-          double sigma_r_6 = pow(sigma/r,6);
-          rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
-        }
-        else {
-          rep = 0.0;
-        }
-      }
-
-      //---Spring E
-      if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-        if (r >= Lmax) { spring = INFINITY; }
-        else { spring = -0.5*h*Lmax*Lmax*log(1-r*r/(Lmax*Lmax)); }
-      }
-      
-      //---Sum old E
-      old_e = lek + rep + spring;
-
-        //-NEW config energy
-      lek = rep = spring = 0;
+      // Old coords
+      rxz_o = sqrt((x[i][0]-x0)*(x[i][0]-x0) + (x[i][2]-z0)*(x[i][2]-z0));
+      y_o   = dist(x[i][1]-y0,Ly);
+      r_o   = sqrt(rxz_o*rxz_o+y_o*y_o);
+      // New coords
       rxz = sqrt((xn[i][0]-x1)*(xn[i][0]-x1) + (xn[i][2]-z1)*(xn[i][2]-z1));
       y   = dist(xn[i][1]-y1,Ly);
       r   = sqrt(rxz*rxz+y*y);
       
       //---Lekner E
-      lek = 2.0*q[n]*q[i]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
+      lek_o = 2.0*q[n]*q[i]*uy*(lekner.interp(rxz_o*uy,y_o*uy)-log(Ly));
+      lek   = 2.0*q[n]*q[i]*uy*(lekner.interp(rxz*uy,y*uy)-log(Ly));
       
       //---Repulsive E
       if(n>=N && i>=N) {
+        // Old
+        if(r_o <= 1.12246*sigma_c) {
+          double sigma_r_6 = pow(sigma_c/r_o,6);
+          rep_o = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
+        }
+        else {
+          rep_o = 0.0;
+        }
+
+        // New
         if(r <= 1.12246*sigma_c) {
           double sigma_r_6 = pow(sigma_c/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
@@ -158,6 +136,16 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
         }
       }
       else {
+        // Old
+        if(r_o <= 1.12246*sigma) {
+          double sigma_r_6 = pow(sigma/r_o,6);
+          rep_o = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
+        }
+        else {
+          rep_o = 0.0;
+        }
+
+        // New
         if(r <= 1.12246*sigma) {
           double sigma_r_6 = pow(sigma/r,6);
           rep = 4.0*ep*(sigma_r_6*sigma_r_6-sigma_r_6+0.25);
@@ -169,15 +157,12 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
 
       //---Spring E
       if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-        if (r >= Lmax) { spring = INFINITY; }
-        else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
+        spring_o = 0.5*h*(r_o-Lmax)*(r_o-Lmax);
+        spring = 0.5*h*(r-Lmax)*(r-Lmax);
       }
       
-      //---Sum old E
-      new_e = lek + rep + spring;
-      
       //-DELTA E
-      delta_e += new_e - old_e;
+      delta_e += lek + rep + spring - lek_o - rep_o - spring_o;
     }
   }
 

@@ -8,11 +8,12 @@ int main(int argc, char **argv) {
   double fLprev=0.0, fRprev=0.0;
   double sumsq, rms, xL, zL, xR, zR;
   int accepted = 0;
+  int accepted_chain = 0;
+  int mcstep = 0;
   double De;
   double totalE;
   char filename[64];
   int i; int ranN;
-  bool loop = true;
 
   Int n_rxz = 50, n_y = 20;
   const Doub rxzs[] = {0.00011248105,0.0002445754,0.00039970507,0.0005818891,0.00079584776,0.0010471249,0.0013422316,0.0016888149,0.0020958562,0.0025739038,0.0031353464,0.0037947343,0.0045691562,0.0054786826,0.0065468857,0.0078014503,0.0092748916,0.011005398,0.01303782,0.015424834,0.018228308,0.021520902,0.025387954,0.029929694,0.035263835,0.041528631,0.048886457,0.057528017,0.067677289,0.079597329,0.093597089,0.11003942,0.1293505,0.15203084,0.17866828,0.20995325,0.24669659,0.28985067,0.34053399,0.40006019,0.46997212,0.55208183,0.64851749,0.76177862,0.8948008,1.0510318,1.234521,1.4500242,1.703127,2.0003895} ;
@@ -216,49 +217,78 @@ int main(int argc, char **argv) {
     for(i=0; i<N;i++) {
       q[i]    = ci_charge*0.1;
 
-      x[i][0] = xn[i][0] = ran_xz(1.0*R);
+      x[i][0] = xn[i][0] = ran_xz(0.5*R);
       x[i][1] = xn[i][1] = ran_y(Ly);
-      x[i][2] = xn[i][2] = ran_xz(0.5*R);
+      x[i][2] = xn[i][2] = ran_xz(0.25*R);
     }
     w++;
   } while (w < 5000 && isfinite(energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
 
   //MC loop
   for(s = 0; s < T; s++) {
-    for(n = 0; n < N+2*Nl; n++) {
-      kbt = kf;
+    if(s < nequil || stepChain == 0.0) {
+      for(n = 0; n < N; n++) {
+        kbt = kf;
 
-      if(s < nequil || stepChain == 0.0)
         ranN = ran_particle(N);
-      else
-        ranN = ran_particle(N+2*Nl);
+        dx = ran_du(); dy = ran_du(); dz = ran_du();
 
-      dx = ran_du(); dy = ran_du(); dz = ran_du();
-
-      if(ranN < N) {
         xn[ranN][0] += step*dx;
         xn[ranN][1] += step*dy;
         xn[ranN][2] += step*dz;
-      } else {
-        xn[ranN][0] += stepChain*dx;
-        xn[ranN][1] += stepChain*dy;
-        xn[ranN][2] += stepChain*dz;
-      }
 
-      De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
+        De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
 
-      if(De < 0 || exp(-De/kbt) > ran_u()) {
-        if(s >= nequil) accepted += 1;
-        x[ranN][0] = xn[ranN][0];
-        x[ranN][1] = xn[ranN][1];
-        x[ranN][2] = xn[ranN][2];
-      }
-      else {
-        xn[ranN][0] = x[ranN][0];
-        xn[ranN][1] = x[ranN][1];
-        xn[ranN][2] = x[ranN][2];
-      }
-    } //end sweep
+        if(De < 0 || exp(-De/kbt) > ran_u()) {
+          if(s >= nequil) accepted += 1;
+          x[ranN][0] = xn[ranN][0];
+          x[ranN][1] = xn[ranN][1];
+          x[ranN][2] = xn[ranN][2];
+        }
+        else {
+          xn[ranN][0] = x[ranN][0];
+          xn[ranN][1] = x[ranN][1];
+          xn[ranN][2] = x[ranN][2];
+        }
+
+        if(s >= nequil) mcstep += 1;
+      } //end particle only sweep
+    }
+    else {
+      for(n = 0; n < N+2*Nl; n++) {
+        kbt = kf;
+
+        ranN = ran_particle(N+2*Nl);
+
+        dx = ran_du(); dy = ran_du(); dz = ran_du();
+
+        if(ranN < N) {
+          xn[ranN][0] += step*dx;
+          xn[ranN][1] += step*dy;
+          xn[ranN][2] += step*dz;
+        } else {
+          xn[ranN][0] += stepChain*dx;
+          xn[ranN][1] += stepChain*dy;
+          xn[ranN][2] += stepChain*dz;
+        }
+
+        De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
+
+        if(De < 0 || exp(-De/kbt) > ran_u()) {
+          if(s >= nequil) accepted += 1;
+          if(ranN >= N) accepted_chain +=1;
+          x[ranN][0] = xn[ranN][0];
+          x[ranN][1] = xn[ranN][1];
+          x[ranN][2] = xn[ranN][2];
+        }
+        else {
+          xn[ranN][0] = x[ranN][0];
+          xn[ranN][1] = x[ranN][1];
+          xn[ranN][2] = x[ranN][2];
+        }
+        if(s >= nequil) mcstep += 1;
+      } //end all sweep
+    } //end particle/all if split
 
     if(s < nequil && s % 100 == 0) {
       for(i=0; i<N+2*Nl;i++) {
@@ -355,5 +385,6 @@ int main(int argc, char **argv) {
     }
   free(x); free(xn); free(q);
 
-  printf("%d\t%f\n", accepted, 1.0*accepted/(T*(N+2*Nl)));
+  printf("%f\t%f\n", (accepted-accepted_chain)/(mcstep*1.0*N/(N+2*Nl)), accepted_chain/(mcstep*2.0*Nl/(N+2*Nl)));
+
 }
