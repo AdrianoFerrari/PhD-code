@@ -157,8 +157,11 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
 
       //---Spring E
       if(linked(i,n,N,Nl) || linked(n,i,N,Nl)) {
-        spring_o = 0.5*h*(r_o-Lmax)*(r_o-Lmax);
-        spring = 0.5*h*(r-Lmax)*(r-Lmax);
+        if (r_o >= Lmax) { spring_o = INFINITY; }
+        else { spring_o = -(0.5*h*Lmax*Lmax)*log(1-(r_o/Lmax)*(r_o/Lmax)); }
+
+        if (r >= Lmax) { spring = INFINITY; }
+        else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
       }
       
       //-DELTA E
