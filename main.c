@@ -136,7 +136,7 @@ int main(int argc, char **argv) {
   if (dataOut != 0) {
     sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"a");
     //print headers
-    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfx\tRl\tRo\tA\twv\tA0\tstep\tstepC\tenergy\tsigma\tsigma_c\n");
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfx\tRo\tRl\tA\twv\tA0\tstep\tstepC\tenergy\tsigma\tsigma_c\n");
     fflush(data);
   }
 
@@ -317,6 +317,8 @@ int main(int argc, char **argv) {
       fRx = 0.0;
       xL  = 0.0;
       zL  = 0.0;
+      xR  = 0.0;
+      zR  = 0.0;
       rms  = 0.0;
       sumsq= 0.0;
       totalE = 0.0;
@@ -344,7 +346,6 @@ int main(int argc, char **argv) {
  
       fLprev = fLx;
       fRprev = fRx;
-
       
       //calculate average position of lines
       for(int i=N; i<N+Nl; i++) {
