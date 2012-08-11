@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N grouped
-#PBS -l nodes=1:ppn=8,walltime=00:15:30
+#PBS -l nodes=2:ppn=8,walltime=00:15:30
 
 cd $PBS_O_WORKDIR
-export OMP_NUM_THREADS=8
+export OMP_NUM_THREADS=16
