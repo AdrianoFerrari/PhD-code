@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
       }
     }
   }
-  else if(turns != 0.0) {
+  else if(turns != 0.0) { // Helix init
     for(i=N; i < N+2*Nl; i++) {
       if(i < N+Nl) {
         q[i]    = qL*0.1;
@@ -194,11 +194,12 @@ int main(int argc, char **argv) {
       }
     }
   }
-  else {
+  else { // Wave perturbed init
     for(i=N; i < N+2*Nl; i++) {
+      double phi1 = twoPI*ran_u();
       if(i < N+Nl) {
         q[i]    = qL*0.1;
-        x[i][0] = xn[i][0] = -0.5*R+amp*sin(twoPI*(i-N)*Ly/Nl/wv);
+        x[i][0] = xn[i][0] = -0.5*R+amp*sin(twoPI*(i-N)*Ly/Nl/wv + phi1);
         x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
         x[i][2] = xn[i][2] = 0.0;
       }
