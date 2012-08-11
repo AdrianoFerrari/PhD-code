@@ -81,6 +81,18 @@ double theta_du(double x1, double y1, double z1, double x0, double y0, double z0
   
   return th1*th1-th0*th0-twoPI*(th1-th0);
 }
+double bp_du(double ebp, double phi0, double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xa, double ya, double za, double xap, double yap, double zap) {
+  double ro = sqrt( (x0-xa)*(x0-xa) +(y0-ya)*(y0-ya) +(z0-za)*(z0-za) );
+  double rn = sqrt( (x1-xa)*(x1-xa) +(y1-ya)*(y1-ya) +(z1-za)*(z1-za) );
+
+  double vo = ( (xa-xap)*(x0-xp)+(ya-yap)*(y0-yp)+(za-zap)*(z0-zp) ) / sqrt( ( (xa-xap)*(xa-xap) + (ya-yap)*(ya-yap) + (za-zap)*(za-zap) )*( (x0-xp)*(x0-xp) + (y0-yp)*(y0-yp) + (z0-zp)*(z0-zp) ));
+  double vn = ( (xa-xap)*(x1-xp)+(ya-yap)*(y1-yp)+(za-zap)*(z1-zp) ) / sqrt( ( (xa-xap)*(xa-xap) + (ya-yap)*(ya-yap) + (za-zap)*(za-zap) )*( (x1-xp)*(x1-xp) + (y1-yp)*(y1-yp) + (z1-zp)*(z1-zp) ));
+
+  double eo = ebp*sin(acos(vo)-phi0);
+  double en = ebp*sin(acos(vn)-phi0);
+  
+  return en-eo;
+}
 double delta_u(double **x, double **xn, double *q, int n, double ep, double sigma, double sigma_c, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
   double x1 = xn[n][0];
   double y1 = xn[n][1];
@@ -163,6 +175,7 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
         if (r >= Lmax) { spring = INFINITY; }
         else { spring = -(0.5*h*Lmax*Lmax)*log(1-(r/Lmax)*(r/Lmax)); }
       }
+
       
       //-DELTA E
       delta_e += lek + rep + spring - lek_o - rep_o - spring_o;
@@ -170,9 +183,8 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
   }
 
   //---Delta Spring Theta
-  double dtheta;
-
   if(n>=N) {
+    double dtheta;
     if(n==N){
       dtheta = theta_du(x1,y1,z1,x0,y0,z0,x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2],x[n+1][0],x[n+1][1],x[n+1][2],Ly);
     } else if(n==N+Nl-1) {
@@ -186,7 +198,22 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
     }
     delta_e += htheta*dtheta;
   }
-  
+
+  //---Base Pair potential
+  double ebp = 1000.0; double phi0 = 2.031;
+  if(n>=N && n<N+Nl) {
+    if(n==N)
+      delta_e += bp_du(ebp,phi0, x1,y1,z1, x0,y0,z0, x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2], x[N+Nl][0],x[N+Nl][1],x[N+Nl][2], x[2*Nl+N-1][0],x[2*Nl+N-1][1],x[2*Nl+N-1][2]);
+    else
+      delta_e += bp_du(ebp,phi0, x1,y1,z1, x0,y0,z0, x[n-1][0],x[n-1][1],x[n-1][2], x[n+Nl][0],x[n+Nl][1],x[n+Nl][2], x[n+Nl-1][0],x[n+Nl-1][1],x[n+Nl-1][2]);
+  }
+  else if(n>=N+Nl) {
+    if(n==N+Nl)
+      delta_e += bp_du(ebp,phi0, x1,y1,z1, x0,y0,z0, x[2*Nl+N-1][0],x[2*Nl+N-1][1],x[2*Nl+N-1][2],x[n-Nl][0],x[n-Nl][1],x[n-Nl][2],x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2]);
+    else
+      delta_e += bp_du(ebp,phi0,x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[n-Nl][0],x[n-Nl][1],x[n-Nl][2],x[n-Nl-1][0],x[n-Nl-1][1],x[n-Nl-1][2]);
+  }
+
   return delta_e;
 }
 double ran_xz(double maxR) { return sqrt(maxR*maxR*UNI)*cos(twoPI*UNI); }
