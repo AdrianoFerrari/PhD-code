@@ -1,5 +1,5 @@
 #include "functions.c"
-#define nequil 20000
+#define nequil 60000
 
 int main(int argc, char **argv) {
   //variable init
@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   int accepted_chain = 0;
   int mcstep = 0;
   double De;
-  double totalE;
+  double totalE = 0.0;
   char filename[64];
   int i; int ranN;
 
@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
   } while (w < 5000 && isfinite(energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
 
   //MC loop
-  for(s = 0; s < T; s++) {
+  for(s = 0; s <= T; s++) {
     if(s < nequil || stepChain == 0.0) {
       for(n = 0; n < N; n++) {
         kbt = kf;
@@ -320,12 +320,10 @@ int main(int argc, char **argv) {
       zL  = 0.0;
       xR  = 0.0;
       zR  = 0.0;
-      rms  = 0.0;
       sumsq= 0.0;
-      totalE = 0.0;
 
       //calculate total energy
-      totalE = energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
+      totalE += dataOut*energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner)/(T-nequil);
 
       //calculate forces
       for(int i=0; i<N+2*Nl; i++) {
@@ -357,24 +355,20 @@ int main(int argc, char **argv) {
         xR += x[i][0]/Nl;
         zR += x[i][2]/Nl;
       }
-      Ro = sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL));
+      Ro += dataOut*sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL))/(T-nequil);
 
       //calculate rms amplitude of left line
       for(int i=N; i<N+Nl; i++) {
         sumsq += (x[i][0]-xL)*(x[i][0]-xL);
       }
-      rms = sqrt(2.0*sumsq/Nl);
+      rms += dataOut*sqrt(2.0*sumsq/Nl)/(T-nequil);
 
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
-      
-      fflush(data);
+      if(s == T){ //only works if T is divisible by dataOut!!
+        fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
+        fflush(data);
+      }
     } //end dataOut
-
   } //end MC loops
-
-  /*for(int i=0; i<Nl;i++){
-    printf("%f\n",acos((x[N+i][0]-x[N+Nl+i][0])/sqrt((x[N+i][0]-x[N+Nl+i][0])*(x[N+i][0]-x[N+Nl+i][0])+(x[N+i][2]-x[N+Nl+i][2])*(x[N+i][2]-x[N+Nl+i][2]))));
-  }*/
 
   //close files
   if(posOut != 0) { fclose(pos); }
