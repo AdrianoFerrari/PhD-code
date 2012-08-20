@@ -5,7 +5,7 @@ int main(int argc, char **argv) {
   //variable init
   int s,n;
   double dx, dy, dz, fLx, fRx, Ro, kbt;
-  double fLprev=0.0, fRprev=0.0;
+  double fLprev=0.0, fRprev=0.0, fxi=0.0;
   double sumsq, rms, xL, zL, xR, zR;
   int accepted = 0;
   int accepted_chain = 0;
@@ -305,8 +305,21 @@ int main(int argc, char **argv) {
     if(posOut != 0 && s >= nequil && s % posOut == 0) {
       fprintf(pos,"%d\n",N+2*Nl);
       fprintf(pos,"N%d Nl%d q%f ep%f h%f Lmax%f T%d kbt%f R%f pos%d\n",N,Nl,ci_charge,ep,h,Lmax,T,kbt,R,posOut);
-      for(i=0;i<N+2*Nl;i++) {
-        fprintf(pos,"%d %f %f %f\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2]);
+      for(int i=0;i<N+2*Nl;i++) {
+        
+        if(i >= N && i <N+Nl){
+          fxi = 0.0;
+          for(int j=0;j<N+2*Nl;j++){
+            if(i == j || (j >= N && j <N+Nl)){
+              continue;
+            }
+            fxi += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
+          }
+        } else {
+          fxi = NAN;
+        }
+    
+        fprintf(pos,"%d %10.10f %f %f %10.10f\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi);
       }
 
       fflush(pos);
