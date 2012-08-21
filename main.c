@@ -319,7 +319,7 @@ int main(int argc, char **argv) {
           fxi = NAN;
         }
     
-        fprintf(pos,"%d %10.10f %f %f %10.10f\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi);
+        fprintf(pos,"%d %10.10f %f %f %10.10f %f %d\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi,R,(int)round(Ly/wv));
       }
 
       fflush(pos);
