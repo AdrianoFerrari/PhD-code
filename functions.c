@@ -81,7 +81,19 @@ double theta_du(double x1, double y1, double z1, double x0, double y0, double z0
   
   return th1*th1-th0*th0-twoPI*(th1-th0);
 }
-double delta_u(double **x, double **xn, double *q, int n, double ep, double sigma, double sigma_c, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
+double bp_du(double ebp, double phi0, double x1, double y1, double z1, double x0, double y0, double z0, double xp, double yp, double zp, double xa, double ya, double za, double xap, double yap, double zap) {
+  double xo = (xap*(y0-ya)+x0*(ya-yap)+xa*(yap-y0))*(xp*(ya-y0)+xa*(y0-yp)+x0*(yp-ya))+(xap*(z0-za)+x0*(za-zap)+xa*(zap-z0))*(xp*(za-z0)+xa*(z0-zp)+x0*(zp-za))+(yap*(z0-za)+y0*(za-zap)+ya*(zap-z0))*(yp*(za-z0)+ya*(z0-zp)+y0*(zp-za));
+  double xn = (xap*(y1-ya)+x1*(ya-yap)+xa*(yap-y1))*(xp*(ya-y1)+xa*(y1-yp)+x1*(yp-ya))+(xap*(z1-za)+x1*(za-zap)+xa*(zap-z1))*(xp*(za-z1)+xa*(z1-zp)+x1*(zp-za))+(yap*(z1-za)+y1*(za-zap)+ya*(zap-z1))*(yp*(za-z1)+ya*(z1-zp)+y1*(zp-za));
+
+  double yo = sqrt((x0-xa)*(x0-xa)+(y0-ya)*(y0-ya)+(z0-za)*(z0-za))*((y0-yp)*(xap*(z0-za)+x0*(za-zap)+xa*(zap-z0))+(x0-xp)*(yap*(za-z0)+ya*(z0-zap)+y0*(zap-za))+(xap*(ya-y0)+xa*(y0-yap)+x0*(yap-ya))*(z0-zp));
+  double yn = sqrt((x1-xa)*(x1-xa)+(y1-ya)*(y1-ya)+(z1-za)*(z1-za))*((y1-yp)*(xap*(z1-za)+x1*(za-zap)+xa*(zap-z1))+(x1-xp)*(yap*(za-z1)+ya*(z1-zap)+y1*(zap-za))+(xap*(ya-y1)+xa*(y1-yap)+x1*(yap-ya))*(z1-zp));
+
+  double eo = atan2(yo,xo) < 0 ? 0 : ebp;
+  double en = atan2(yn,xn) < 0 ? 0 : ebp;
+  
+  return en-eo;
+}
+double delta_u(double **x, double **xn, double *q, int n, double ep, double sigma, double sigma_c, double ebp, double h, double htheta, double Lmax, int N, int Nl, double Ly, Bilin_interp lekner) {
   double x1 = xn[n][0];
   double y1 = xn[n][1];
   double z1 = xn[n][2];
@@ -186,6 +198,20 @@ double delta_u(double **x, double **xn, double *q, int n, double ep, double sigm
     }
     delta_e += htheta*dtheta;
   }
+
+  double phi0 = 2.031;
+  if(n>=N && n<N+Nl) {
+    if(n==N)
+      delta_e += bp_du(ebp,phi0, x1,y1,z1, x0,y0,z0, x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2], x[N+Nl][0],x[N+Nl][1],x[N+Nl][2], x[2*Nl+N-1][0],x[2*Nl+N-1][1],x[2*Nl+N-1][2]);
+    else
+      delta_e += bp_du(ebp,phi0, x1,y1,z1, x0,y0,z0, x[n-1][0],x[n-1][1],x[n-1][2], x[n+Nl][0],x[n+Nl][1],x[n+Nl][2], x[n+Nl-1][0],x[n+Nl-1][1],x[n+Nl-1][2]);
+  }
+  else if(n>=N+Nl) {
+    if(n==N+Nl)
+      delta_e += bp_du(ebp,phi0, x1,y1,z1, x0,y0,z0, x[2*Nl+N-1][0],x[2*Nl+N-1][1],x[2*Nl+N-1][2],x[n-Nl][0],x[n-Nl][1],x[n-Nl][2],x[N+Nl-1][0],x[N+Nl-1][1],x[N+Nl-1][2]);
+    else
+      delta_e += bp_du(ebp,phi0,x1,y1,z1,x0,y0,z0,x[n-1][0],x[n-1][1],x[n-1][2],x[n-Nl][0],x[n-Nl][1],x[n-Nl][2],x[n-Nl-1][0],x[n-Nl-1][1],x[n-Nl-1][2]);
+  }
   
   return delta_e;
 }
@@ -215,11 +241,14 @@ double lekner_fx(double q0, double x0, double y0, double z0, double q1, double x
   return fxz*x/r;
 }
 // Replusive force_x on particle 0 by particle 1
-double rep_fx(double ep, double x0, double y0, double z0, double x1, double y1, double z1, double Ly) {
+double rep_fx(double ep, double sigma, double x0, double y0, double z0, double x1, double y1, double z1, double Ly) {
   double x = (x0-x1);
   double r = sqrt( x*x + dist(y0-y1,Ly)*dist(y0-y1,Ly) + (z0-z1)*(z0-z1) );
-  if(r*r <= 10.0*pow(ep,0.1666666) && r != 0) {
-    return 12.0*ep*x/pow(r,14);
+
+  if(r <= 1.12246*sigma) {
+    double sigma_6  = pow(sigma,6);
+    double r_6      = pow(r,6);
+    return -24.0*ep*sigma_6*(r_6-2.0*sigma_6)*x/pow(r,14);
   }
   else {
     return 0.0;

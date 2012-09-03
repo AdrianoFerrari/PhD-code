@@ -1,5 +1,5 @@
 #include "functions.c"
-#define nequil 60000
+#define nequil 20000
 
 int main(int argc, char **argv) {
   //variable init
@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   int accepted_chain = 0;
   int mcstep = 0;
   double De;
-  double totalE = 0.0;
+  double totalE;
   char filename[64];
   int i; int ranN;
 
@@ -48,6 +48,7 @@ int main(int argc, char **argv) {
   int kc            = 0;
   double sigma      = 0.30;
   double sigma_c    = 0.15;
+  double ebp        = 0.0;
 
   //import simulation parameters
   for(int i = 1; i < argc;i++) {
@@ -97,6 +98,8 @@ int main(int argc, char **argv) {
       sigma    = atof(argv[++i]);
     else if ( strcmp(argv[i], "-sigc") == 0 )
       sigma_c  = atof(argv[++i]);
+    else if ( strcmp(argv[i], "-ebp") == 0 )
+      ebp     = atof(argv[++i]);
   }
  
   //inits
@@ -226,7 +229,7 @@ int main(int argc, char **argv) {
   } while (w < 5000 && isfinite(energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner)) == 0);
 
   //MC loop
-  for(s = 0; s <= T; s++) {
+  for(s = 0; s < T; s++) {
     if(s < nequil || stepChain == 0.0) {
       for(n = 0; n < N; n++) {
         kbt = kf;
@@ -238,7 +241,7 @@ int main(int argc, char **argv) {
         xn[ranN][1] += step*dy;
         xn[ranN][2] += step*dz;
 
-        De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
+        De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,ebp,h,htheta,Lmax,N,Nl,Ly,lekner);
 
         if(De < 0 || exp(-De/kbt) > ran_u()) {
           if(s >= nequil) accepted += 1;
@@ -269,11 +272,11 @@ int main(int argc, char **argv) {
           xn[ranN][2] += step*dz;
         } else {
           xn[ranN][0] += stepChain*dx;
-          xn[ranN][1] += stepChain*dy;
+          xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : stepChain*dy;
           xn[ranN][2] += stepChain*dz;
         }
 
-        De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
+        De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,ebp,h,htheta,Lmax,N,Nl,Ly,lekner);
 
         if(De < 0 || exp(-De/kbt) > ran_u()) {
           if(s >= nequil) accepted += 1;
@@ -319,7 +322,7 @@ int main(int argc, char **argv) {
           fxi = NAN;
         }
     
-        fprintf(pos,"%d %10.10f %f %f %10.10f %f %d\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi,R,(int)round(Ly/wv));
+        fprintf(pos,"%d %10.10f %f %f %10.10f %f %d %d %d\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi,R,(int)round(Ly/wv),seed,s);
       }
 
       fflush(pos);
@@ -336,7 +339,7 @@ int main(int argc, char **argv) {
       sumsq= 0.0;
 
       //calculate total energy
-      totalE += dataOut*energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner)/(T-nequil);
+      totalE = energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
 
       //calculate forces
       for(int i=0; i<N+2*Nl; i++) {
@@ -345,12 +348,12 @@ int main(int argc, char **argv) {
           
           if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
             fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
-                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
+                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
             fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
           }
           else if(i >= N+Nl) {//if i is on the right chain, add to fRx
             fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
-                +  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
+                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
             fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
           }
         }
@@ -368,18 +371,16 @@ int main(int argc, char **argv) {
         xR += x[i][0]/Nl;
         zR += x[i][2]/Nl;
       }
-      Ro += dataOut*sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL))/(T-nequil);
+      Ro = sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL));
 
       //calculate rms amplitude of left line
       for(int i=N; i<N+Nl; i++) {
         sumsq += (x[i][0]-xL)*(x[i][0]-xL);
       }
-      rms += dataOut*sqrt(2.0*sumsq/Nl)/(T-nequil);
+      rms = sqrt(2.0*sumsq/Nl);
 
-      if(s == T){ //only works if T is divisible by dataOut!!
-        fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
-        fflush(data);
-      }
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
+      fflush(data);
     } //end dataOut
   } //end MC loops
 
