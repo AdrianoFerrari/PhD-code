@@ -62,7 +62,8 @@ def create_script(name,i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,L
     filename = name +"_"+ str(i)
     s =  "#!/bin/bash\n#PBS -N %s\n" % filename
     s += "#PBS -q debug\n"
-    s += "#PBS -l nodes=2:ppn=8,walltime=00:15:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
+    s += "#PBS -l nodes=2:ppn=8,walltime=00:03:00\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
+    s += "GSL_IEEE_MODE=\"double-precision, mask-underflow, mask-denormalized\"\n\n"
     s = s + "./main.exe " + args + " -f " + filename + "\n"
     f.write(s)
     f.close

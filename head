@@ -1,6 +1,10 @@
 #!/bin/bash
 #PBS -N grouped
-#PBS -l nodes=2:ppn=8,walltime=00:25:30
+#PBS -l nodes=2:ppn=8,walltime=00:15:30
+
+GSL_IEEE_MODE="double-precision,"\
+"mask-underflow,"\
+"mask-denormalized"
 
 cd $PBS_O_WORKDIR
 export OMP_NUM_THREADS=16

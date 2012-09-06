@@ -2,6 +2,8 @@
 #define nequil 20000
 
 int main(int argc, char **argv) {
+  gsl_error_handler_t * old_handler=gsl_set_error_handler_off();
+
   //variable init
   int s,n;
   double dx, dy, dz, fLx, fRx, Ro, kbt;
@@ -166,17 +168,18 @@ int main(int argc, char **argv) {
       }
     }
 
-    for(n=1; n < kc; n++) {
-      phi1 = twoPI*ran_u();
-      phi2 = twoPI*ran_u();
+    phi1 = twoPI*ran_u();
+    phi2 = twoPI*ran_u();
+
+    for(n=1; n <= kc; n++) {
       for(i=N; i < N+2*Nl; i++) {
         if(i < N+Nl) {
-          x[i][0]  += amp*sin(twoPI*kc*(i-N)/Nl+phi1);
-          xn[i][0] += amp*sin(twoPI*kc*(i-N)/Nl+phi1);
+          x[i][0]  += amp*sin(twoPI*kc*(i-N)/Nl+phi1)/kc;
+          xn[i][0] += amp*sin(twoPI*kc*(i-N)/Nl+phi1)/kc;
         }
         else {
-          x[i][0]  += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2);
-          xn[i][0] += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2);
+          x[i][0]  += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2)/kc;
+          xn[i][0] += amp*sin(twoPI*kc*(i-N-Nl)/Nl+phi2)/kc;
         }
       }
     }
@@ -198,8 +201,9 @@ int main(int argc, char **argv) {
     }
   }
   else { // Wave perturbed init
+    double phi1 = twoPI*ran_u();
+
     for(i=N; i < N+2*Nl; i++) {
-      double phi1 = twoPI*ran_u();
       if(i < N+Nl) {
         q[i]    = qL*0.1;
         x[i][0] = xn[i][0] = -0.5*R+amp*sin(twoPI*(i-N)*Ly/Nl/wv + phi1);
@@ -273,7 +277,7 @@ int main(int argc, char **argv) {
         } else {
           xn[ranN][0] += stepChain*dx;
           xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : stepChain*dy;
-          xn[ranN][2] += stepChain*dz;
+          //xn[ranN][2] += stepChain*dz;
         }
 
         De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,ebp,h,htheta,Lmax,N,Nl,Ly,lekner);
