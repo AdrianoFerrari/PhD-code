@@ -201,12 +201,10 @@ int main(int argc, char **argv) {
     }
   }
   else { // Wave perturbed init
-    double phi1 = twoPI*ran_u();
-
     for(i=N; i < N+2*Nl; i++) {
       if(i < N+Nl) {
         q[i]    = qL*0.1;
-        x[i][0] = xn[i][0] = -0.5*R+amp*sin(twoPI*(i-N)*Ly/Nl/wv + phi1);
+        x[i][0] = xn[i][0] = -0.5*R+amp*cos(twoPI*(i-N)*wv/Nl);
         x[i][1] = xn[i][1] = (i-N)*Ly/Nl;
         x[i][2] = xn[i][2] = 0.0;
       }
@@ -234,6 +232,84 @@ int main(int argc, char **argv) {
 
   //MC loop
   for(s = 0; s < T; s++) {
+
+    if(posOut != 0 && s >= nequil && s % posOut == 0) {
+      fprintf(pos,"%d\n",N+2*Nl);
+      fprintf(pos,"N%d Nl%d q%f ep%f h%f Lmax%f T%d kbt%f R%f pos%d\n",N,Nl,ci_charge,ep,h,Lmax,T,kbt,R,posOut);
+      for(int i=0;i<N+2*Nl;i++) {
+        
+        if(i >= N && i <N+Nl){
+          fxi = 0.0;
+          for(int j=0;j<N+2*Nl;j++){
+            if(i == j || (j >= N && j <N+Nl)){
+              continue;
+            }
+            fxi += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
+          }
+        } else {
+          fxi = NAN;
+        }
+    
+        fprintf(pos,"%d %10.10f %f %f %10.10f %f %d %d %d\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi,R,(int)wv,seed,s);
+      }
+
+      fflush(pos);
+    }
+
+    if(dataOut != 0 && s >= nequil && s % dataOut == 0) {
+      //initialize output vars
+      fLx = 0.0;
+      fRx = 0.0;
+      xL  = 0.0;
+      zL  = 0.0;
+      xR  = 0.0;
+      zR  = 0.0;
+      sumsq= 0.0;
+
+      //calculate total energy
+      totalE = energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
+
+      //calculate forces
+      for(int i=0; i<N+2*Nl; i++) {
+        for(int j=0; j< N+2*Nl;j++) {
+          if(i==j) { continue; }
+          
+          if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
+            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
+                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
+            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
+          }
+          else if(i >= N+Nl) {//if i is on the right chain, add to fRx
+            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
+                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
+            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
+          }
+        }
+      }
+ 
+      fLprev = fLx;
+      fRprev = fRx;
+      
+      //calculate average position of lines
+      for(int i=N; i<N+Nl; i++) {
+        xL += x[i][0]/Nl;
+        zL += x[i][2]/Nl;
+      }
+      for(int i=N+Nl; i<N+2*Nl; i++) {
+        xR += x[i][0]/Nl;
+        zR += x[i][2]/Nl;
+      }
+      Ro = sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL));
+
+      //calculate rms amplitude of left line
+      for(int i=N; i<N+Nl; i++) {
+        sumsq += (x[i][0]-xL)*(x[i][0]-xL);
+      }
+      rms = sqrt(2.0*sumsq/Nl);
+
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
+      fflush(data);
+    } //end dataOut
     if(s < nequil || stepChain == 0.0) {
       for(n = 0; n < N; n++) {
         kbt = kf;
@@ -309,83 +385,6 @@ int main(int argc, char **argv) {
       }
     }
     
-    if(posOut != 0 && s >= nequil && s % posOut == 0) {
-      fprintf(pos,"%d\n",N+2*Nl);
-      fprintf(pos,"N%d Nl%d q%f ep%f h%f Lmax%f T%d kbt%f R%f pos%d\n",N,Nl,ci_charge,ep,h,Lmax,T,kbt,R,posOut);
-      for(int i=0;i<N+2*Nl;i++) {
-        
-        if(i >= N && i <N+Nl){
-          fxi = 0.0;
-          for(int j=0;j<N+2*Nl;j++){
-            if(i == j || (j >= N && j <N+Nl)){
-              continue;
-            }
-            fxi += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
-          }
-        } else {
-          fxi = NAN;
-        }
-    
-        fprintf(pos,"%d %10.10f %f %f %10.10f %f %d %d %d\n",on_chain(i,N)?10:1,x[i][0],x[i][1],x[i][2],fxi,R,(int)round(Ly/wv),seed,s);
-      }
-
-      fflush(pos);
-    }
-
-    if(dataOut != 0 && s >= nequil && s % dataOut == 0) {
-      //initialize output vars
-      fLx = 0.0;
-      fRx = 0.0;
-      xL  = 0.0;
-      zL  = 0.0;
-      xR  = 0.0;
-      zR  = 0.0;
-      sumsq= 0.0;
-
-      //calculate total energy
-      totalE = energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
-
-      //calculate forces
-      for(int i=0; i<N+2*Nl; i++) {
-        for(int j=0; j< N+2*Nl;j++) {
-          if(i==j) { continue; }
-          
-          if(i >= N && i < N+Nl) {//if i is on left chain, add to fLx
-            fLx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
-                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
-            fLx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
-          }
-          else if(i >= N+Nl) {//if i is on the right chain, add to fRx
-            fRx += lekner_fx(q[i],x[i][0],x[i][1],x[i][2],q[j],x[j][0],x[j][1],x[j][2],Ly);
-                //+  rep_fx(ep, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly);
-            fRx += linked(i,j,N,Nl) ? spring_fx(h, Lmax, x[i][0],x[i][1],x[i][2],x[j][0],x[j][1],x[j][2],Ly) : 0.0;
-          }
-        }
-      }
- 
-      fLprev = fLx;
-      fRprev = fRx;
-      
-      //calculate average position of lines
-      for(int i=N; i<N+Nl; i++) {
-        xL += x[i][0]/Nl;
-        zL += x[i][2]/Nl;
-      }
-      for(int i=N+Nl; i<N+2*Nl; i++) {
-        xR += x[i][0]/Nl;
-        zR += x[i][2]/Nl;
-      }
-      Ro = sqrt((xR-xL)*(xR-xL)+(zR-zL)*(zR-zL));
-
-      //calculate rms amplitude of left line
-      for(int i=N; i<N+Nl; i++) {
-        sumsq += (x[i][0]-xL)*(x[i][0]-xL);
-      }
-      rms = sqrt(2.0*sumsq/Nl);
-
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
-      fflush(data);
-    } //end dataOut
   } //end MC loops
 
   //close files
