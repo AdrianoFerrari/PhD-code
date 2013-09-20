@@ -353,7 +353,7 @@ int main(int argc, char **argv) {
         } else {
           xn[ranN][0] += stepChain*dx;
           xn[ranN][1] += is_endpoint(ranN,N,Nl) ? 0.0 : stepChain*dy;
-          //xn[ranN][2] += stepChain*dz;
+          xn[ranN][2] += stepChain*dz;
         }
 
         De = delta_u(x,xn,q,ranN,ep,sigma,sigma_c,ebp,h,htheta,Lmax,N,Nl,Ly,lekner);
