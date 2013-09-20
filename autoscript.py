@@ -60,10 +60,10 @@ def create_script(name,i,N,Nl,charge,ep,h,ht,r0,T,tF,Po,Fo,R,sd,dx,dxc,tr,A,wv,L
     args += "-s " + str(random.randint(0,9999999999))
 
     filename = name +"_"+ str(i).zfill(5)
-    s =  "#!/bin/bash\n#PBS -N %s\n" % filename
-    s += "#PBS -q debug\n"
-    s += "#PBS -l nodes=2:ppn=8,walltime=00:03:20\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=16\n"
-    s += "GSL_IEEE_MODE=\"double-precision, mask-underflow, mask-denormalized\"\n\n"
+    s = ""#!/bin/bash\n#PBS -N %s\n" % filename
+    #s += "#PBS -q debug\n"
+    #s += "#PBS -l nodes=2:ppn=2,walltime=00:03:20\n\ncd $PBS_O_WORKDIR\nexport OMP_NUM_THREADS=4\n"
+    #s += "GSL_IEEE_MODE=\"double-precision, mask-underflow, mask-denormalized\"\n\n"
     s = s + "./main.exe " + args + " -f " + filename + "\n"
     f.write(s)
     f.close
