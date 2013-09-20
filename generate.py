@@ -2,7 +2,7 @@ from autoscript import *
 
 generate_jobs(
 # name
-  "stab1",
+  "helix2",
 # conditions
   "True",
 
@@ -10,10 +10,10 @@ generate_jobs(
   [20],
 
 # Nls
-  [20],
+  [10],
 
 # charges
-  [2.0],
+  [1.0],
 
 # eps
   [1000.0],
@@ -28,10 +28,10 @@ generate_jobs(
   [0.4],
 
 # T ----
-  [51000],
+  [31000],
 
 # kTs
-  [1.409],
+  [0.409],
 
 # Rs
   [0.5],
@@ -43,7 +43,7 @@ generate_jobs(
   [10],
 
 # seeds
-  range(1,6),
+  [1],#range(1,6),
 
 # Dxs
   [0.01],
@@ -61,7 +61,7 @@ generate_jobs(
   [1.0],
 
 # Lys
-  [6.8],
+  [3.4],
 
 # kcs
   [0],
