@@ -2,7 +2,7 @@ from autoscript import *
 
 generate_jobs(
 # name
-  "helix2",
+  "helix5",
 # conditions
   "True",
 
@@ -28,10 +28,10 @@ generate_jobs(
   [0.4],
 
 # T ----
-  [31000],
+  [41000],
 
 # kTs
-  [0.409],
+  [0.005],
 
 # Rs
   [0.5],
@@ -46,13 +46,13 @@ generate_jobs(
   [1],#range(1,6),
 
 # Dxs
-  [0.01],
+  [0.008],
 
 # Dxcs
   [0.01],
 
 # turns
-  [0.0],
+  [-0.1],
 
 # Amps
   [0.0],
@@ -73,5 +73,5 @@ generate_jobs(
   [0.18],
 
 # ebps
-  [0.0,1.0,10.0,100.0,1000.0,10000.0]
+  [0.0,0.01,0.05,0.1,0.5,1.0,5.0]
 )

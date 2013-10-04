@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   int s,n;
   double dx, dy, dz, fLx, fRx, Ro, kbt;
   double fLprev=0.0, fRprev=0.0, fxi=0.0;
-  double sumsq, rms, xL, zL, xR, zR;
+  double sumsq, sumhelix, rms, xL, zL, xR, zR;
   int accepted = 0;
   int accepted_chain = 0;
   int mcstep = 0;
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
   if (dataOut != 0) {
     sprintf(fnamedata, "%s.dat",filename); data=fopen(fnamedata,"a");
     //print headers
-    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfx\tRo\tRl\tA\twv\tA0\tstep\tstepC\tenergy\tsigma\tsigma_c\n");
+    fprintf(data,"%%seed\tt\tN\tNl\tci_charge\tep\th\ththeta\tLmax\tkf\tR\tturns\tfx\tRo\tRl\tA\twv\tA0\tstep\tstepC\tenergy\tsigma\tsigma_c\thelix\n");
     fflush(data);
   }
 
@@ -265,6 +265,7 @@ int main(int argc, char **argv) {
       xR  = 0.0;
       zR  = 0.0;
       sumsq= 0.0;
+      sumhelix=0.0;
 
       //calculate total energy
       totalE = energy(x,q,ep,sigma,sigma_c,h,htheta,Lmax,N,Nl,Ly,lekner);
@@ -307,7 +308,15 @@ int main(int argc, char **argv) {
       }
       rms = sqrt(2.0*sumsq/Nl);
 
-      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c);
+      double currPhi, nextPhi;      
+      //calculate total delta angle (helicity)
+      for(int i=N; i<N+Nl-1; i++) {
+        currPhi = atan2(x[i][2]-x[i+Nl][2], x[i][0]-x[i+Nl][0]);
+        nextPhi = atan2(x[i+1][2]-x[i+1+Nl][2], x[i+1][0]-x[i+1+Nl][0]);
+        sumhelix += nextPhi - currPhi;
+      }
+
+      fprintf(data,"%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", seed, s, N, Nl, ci_charge, ep, h, htheta, Lmax, kf, R, turns, 0.5*(fRx-fLx), Ro, xL, rms, wv,amp,step,stepChain,totalE,sigma,sigma_c,sumhelix);
       fflush(data);
     } //end dataOut
     if(s < nequil || stepChain == 0.0) {
