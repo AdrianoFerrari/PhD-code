@@ -6,5 +6,5 @@ GSL_IEEE_MODE="double-precision,"\
 "mask-underflow,"\
 "mask-denormalized"
 
-cd $PBS_O_WORKDIR
+cd /home/aferrari/code/PhD-code
 export OMP_NUM_THREADS=16

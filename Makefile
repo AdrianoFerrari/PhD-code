@@ -1,5 +1,5 @@
 main: 
-	icpc main.c -o main.exe -limf -lgsl -lgslcblas -openmp -O3 -xHost -I${SCINET_GSL_INC} -L${SCINET_GSL_LIB}
+	icpc main.c -o main.exe -limf -lgsl -lgslcblas -openmp -O3 -xHost -L/opt/intel/lib/intel64
 main-debug: 
 	icpc -DDEBUG -g main.c -o main.exe -limf -lgsl -lgslcblas -openmp -O3 -xHost -I${SCINET_GSL_INC} -L${SCINET_GSL_LIB}
 tests:
