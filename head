@@ -1,10 +1,11 @@
 #!/bin/bash
 #PBS -N grouped
-#PBS -l nodes=2:ppn=8,walltime=00:15:30
+#PBS -l nodes=1:ppn=12,walltime=00:40:30
+#PBS -V
 
 GSL_IEEE_MODE="double-precision,"\
 "mask-underflow,"\
 "mask-denormalized"
 
 cd /home/aferrari/code/PhD-code
-export OMP_NUM_THREADS=16
+export OMP_NUM_THREADS=12
