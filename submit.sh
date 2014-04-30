@@ -1,5 +1,5 @@
 #!/bin/bash
 
 for job in *.pbs; do
-  qsub $job
+  msub -q sw $job
 done
